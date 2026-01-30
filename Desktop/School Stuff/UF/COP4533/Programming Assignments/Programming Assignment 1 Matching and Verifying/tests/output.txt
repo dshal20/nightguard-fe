@@ -1,0 +1,29 @@
+--- Testing: example.in ---
+1 1
+2 2
+3 3
+VALID STABLE
+
+--- Testing: one_to_one.in ---
+1 1
+VALID STABLE
+
+--- Testing: bad_range.in ---
+INVALID: Hospital H1 list must be a permutation of 1..3.
+
+--- Testing: unstable.in ---
+1 2
+2 1
+3 3
+VALID STABLE
+
+--- Testing: empty.in ---
+INVALID: File is empty or does not exist.
+
+--- Testing: duplicate.in ---
+INVALID: Hospital H1 list must be a permutation of 1..2.
+
+--- Testing: another_test.in ---
+1 2
+2 1
+VALID STABLE

@@ -1,0 +1,13 @@
+Typically as you increase the size of the input (n), the time taken for the matching algorithm to complete is increasing exponentially. This is to be expected as the BigO time complexity of this matching algorithm is O(n^2). The verifier algorithm was likely O(n^3) or worse, as the time taken for it to complete increases at a much faster rate than the matching algorithm.
+
+Matplotlib was used for the graphs, and these were the data points for the graph:
+n=1 	 Match: 0.000003s 	 Verify: 0.000001s
+n=2 	 Match: 0.000006s 	 Verify: 0.000003s
+n=4 	 Match: 0.000007s 	 Verify: 0.000005s
+n=8 	 Match: 0.000009s 	 Verify: 0.000013s
+n=16 	 Match: 0.000016s 	 Verify: 0.000064s
+n=32 	 Match: 0.000041s 	 Verify: 0.000343s
+n=64 	 Match: 0.000168s 	 Verify: 0.001502s
+n=128 	 Match: 0.000638s 	 Verify: 0.011814s
+n=256 	 Match: 0.002659s 	 Verify: 0.059952s
+n=512 	 Match: 0.004633s 	 Verify: 0.627096s
