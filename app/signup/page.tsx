@@ -3,21 +3,21 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth, isAdmin } from "../src/lib/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 
-export default function LoginPage() {
+export default function SignUpPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [out, setOut] = useState("");
 
-  async function signIn() {
+  async function signUp() {
     setOut("");
     try {
-      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
       router.push(isAdmin(cred.user.email) ? "/admin" : "/venue");
     } catch (e: any) {
-      setOut(e.message ?? "Sign in error");
+      setOut(e.message ?? "Sign up error");
     }
   }
 
@@ -48,10 +48,10 @@ export default function LoginPage() {
 
       <div className="flex flex-wrap gap-3">
         <button
-          onClick={signIn}
+          onClick={signUp}
           className="rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
         >
-          Sign in
+          Sign up
         </button>
       </div>
 
