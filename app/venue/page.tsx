@@ -1,56 +1,55 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { auth } from "../src/lib/firebase";
-import { signOut, onAuthStateChanged, User } from "firebase/auth";
+import VenueHeader from "./components/VenueHeader";
+import StatCard from "./components/StatCard";
+import RecentReports from "./components/RecentReports";
+import LiveActivity from "./components/LiveActivity";
 
 export default function VenueDashboard() {
-  const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      setLoading(false);
-    });
-    return () => unsub();
-  }, []);
-
-  useEffect(() => {
-    if (!loading && !user) router.push("/login");
-  }, [loading, user, router]);
-
-  if (loading || !user) {
-    return (
-      <main className="flex min-h-screen items-center justify-center">
-        <p className="text-zinc-600">Loading...</p>
-      </main>
-    );
-  }
-
-  async function handleSignOut() {
-    await signOut(auth);
-    router.push("/login");
-  }
-
   return (
-    <main className="mx-auto max-w-4xl px-4 py-12">
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
-          Venue Dashboard
-        </h1>
-        <button
-          onClick={handleSignOut}
-          className="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-        >
-          Sign out
-        </button>
-      </div>
-      <p className="text-zinc-600 dark:text-zinc-400">
-        Signed in as <span className="font-medium">{user.email}</span>
+    <div className="mx-auto max-w-[1172px] px-8 py-8">
+      <VenueHeader />
+      <p className="mt-2 font-mono text-xs text-white/[0.28]">
+        3h 20m 5s elapsed
       </p>
-    </main>
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              title="ACTIVE INCIDENTS"
+              value={2}
+              meta="Last report 2 mins ago"
+              subtitle="↑ 2 from Last Hour"
+              accent="red"
+            />
+            <StatCard
+              title="TOTAL TONIGHT"
+              value={2}
+              meta="Last report 2 mins ago"
+              subtitle="↑ 2% vs Last Friday"
+              accent="amber"
+            />
+            <StatCard
+              title="CURRENT CAPACITY"
+              value={247}
+              meta="Last reported 1 min ago"
+              subtitle="of 300 Max Capacity"
+              accent="green"
+            />
+            <StatCard
+              title="NETWORK ALERTS"
+              value={13}
+              meta="Last report 2 mins ago"
+              subtitle="From 4 Venues"
+              accent="blue"
+            />
+      </div>
+      <div className="mt-8 grid grid-cols-1 gap-8 xl:grid-cols-3">
+            <div className="xl:col-span-2">
+              <RecentReports />
+            </div>
+            <div>
+              <LiveActivity />
+            </div>
+          </div>
+    </div>
   );
 }
