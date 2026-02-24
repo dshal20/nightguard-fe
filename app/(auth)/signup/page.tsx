@@ -55,7 +55,7 @@ export default function SignUpPage() {
 
       <button
         onClick={signUp}
-        className="mt-6 w-full rounded-lg py-2.5 text-sm font-medium text-white transition hover:opacity-90 active:scale-[0.98]"
+        className="mt-6 w-full cursor-pointer rounded-lg py-2.5 text-sm font-medium text-white transition hover:opacity-90 active:scale-[0.98]"
         style={{ backgroundColor: "#2B36CD" }}
       >
         Sign up
