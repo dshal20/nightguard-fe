@@ -3,20 +3,36 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import type { User } from "firebase/auth";
 import { auth, isAdmin } from "../../src/lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { getMe } from "@/lib/api";
+import ProfileSetupDialog from "@/components/ProfileSetupDialog";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [out, setOut] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
+  const [pendingRedirect, setPendingRedirect] = useState("");
 
   async function signIn() {
     setOut("");
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
-      router.push(isAdmin(cred.user.email) ? "/admin" : "/venue");
+      const destination = isAdmin(cred.user.email) ? "/admin" : "/venue";
+      const token = await cred.user.getIdToken();
+      const profile = await getMe(token);
+
+      if (!profile.firstName || !profile.lastName) {
+        setFirebaseUser(cred.user);
+        setPendingRedirect(destination);
+        setDialogOpen(true);
+      } else {
+        router.push(destination);
+      }
     } catch (e) {
       setOut(e instanceof Error ? e.message : "Sign in error");
     }
@@ -76,6 +92,14 @@ export default function LoginPage() {
           Sign up
         </Link>
       </p>
+
+      {dialogOpen && firebaseUser && (
+        <ProfileSetupDialog
+          open={dialogOpen}
+          firebaseUser={firebaseUser}
+          onComplete={() => router.push(pendingRedirect)}
+        />
+      )}
     </>
   );
 }

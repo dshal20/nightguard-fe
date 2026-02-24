@@ -1,11 +1,13 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { House, ShieldAlert, FileUser, Users, Megaphone, MapPin, Settings, User } from "lucide-react";
 import { auth } from "../../src/lib/firebase";
+import { getMe } from "@/lib/api";
 
 const iconClass = "h-4 w-4 shrink-0 text-current";
 
@@ -75,7 +77,25 @@ function NavSection({
 export default function VenueSidebar() {
   const router = useRouter();
   const pathname = usePathname();
-  const user = auth.currentUser;
+  const [displayName, setDisplayName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+      try {
+        const token = await user.getIdToken();
+        const profile = await getMe(token);
+        if (profile.firstName || profile.lastName) {
+          setDisplayName([profile.firstName, profile.lastName].filter(Boolean).join(" "));
+        } else {
+          setDisplayName(user.email?.split("@")[0] ?? "User");
+        }
+      } catch {
+        setDisplayName(user.email?.split("@")[0] ?? "User");
+      }
+    });
+    return () => unsub();
+  }, []);
 
   async function handleSignOut() {
     await signOut(auth);
@@ -110,7 +130,7 @@ export default function VenueSidebar() {
           <div className="h-8 w-8 shrink-0 rounded-full bg-[#262B75]" />
           <div className="min-w-0">
             <p className="truncate text-base font-bold text-[#DDDBDB]">
-              {user?.email?.split("@")[0] ?? "User"}
+              {displayName ?? "…"}
             </p>
             <p className="text-[10px] font-bold text-[#8B8B9D]">
               Venue Manager
