@@ -51,7 +51,7 @@ export interface CreateIncidentRequest {
 export interface IncidentResponse {
   id: string;
   venueId: string;
-  reporterId: string;
+  reporter: UserProfile;
   type: IncidentType;
   severity: IncidentSeverity;
   description: string;
@@ -73,6 +73,14 @@ export async function getVenues(token: string): Promise<Venue[]> {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error("Failed to fetch venues");
+  return res.json();
+}
+
+export async function getUserByEmail(token: string, email: string): Promise<UserProfile> {
+  const res = await fetch(`${API_URL}/users/${encodeURIComponent(email)}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch user");
   return res.json();
 }
 
