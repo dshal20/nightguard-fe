@@ -14,7 +14,7 @@ interface VenueContextValue {
   selectedVenue: Venue | null;
   setSelectedVenue: (v: Venue) => void;
   loading: boolean;
-  refetch: () => void;
+  refetch: () => unknown;
 }
 
 const VenueContext = createContext<VenueContextValue>({
@@ -38,7 +38,7 @@ export function VenueProvider({
   children: ReactNode;
   venues: Venue[];
   loading: boolean;
-  refetch: () => void;
+  refetch: () => unknown;
 }) {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
 

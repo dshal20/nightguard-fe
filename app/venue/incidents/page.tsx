@@ -1,16 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/app/src/lib/firebase";
-import {
-  getVenues,
-  getIncidents,
-  type IncidentResponse,
-  type IncidentSeverity,
-} from "@/lib/api";
+import { useState } from "react";
+import { type IncidentSeverity, type IncidentResponse } from "@/lib/api";
 import { Eye, Loader2 } from "lucide-react";
 import IncidentDetailModal from "../components/IncidentDetailModal";
+import { useVenueContext } from "../context/VenueContext";
+import { useIncidentsQuery } from "@/lib/queries";
 
 const severityStyle: Record<IncidentSeverity, string> = {
   LOW: "border-[#2B36CD] bg-[#2B36CD]/10 text-[#5B6AFF]",
@@ -26,42 +21,17 @@ function formatType(type: string) {
 }
 
 function formatTime(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
 function formatDate(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
+  return new Date(iso).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
 }
 
 export default function IncidentsPage() {
-  const [incidents, setIncidents] = useState<IncidentResponse[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { selectedVenue } = useVenueContext();
+  const { data: incidents = [], isLoading, isError } = useIncidentsQuery(selectedVenue?.id);
   const [selected, setSelected] = useState<IncidentResponse | null>(null);
-
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
-      try {
-        const token = await user.getIdToken();
-        const venues = await getVenues(token);
-        if (venues.length === 0) {
-          setError("No venue found");
-          setLoading(false);
-          return;
-        }
-        const data = await getIncidents(token, venues[0].id);
-        setIncidents(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load incidents");
-      } finally {
-        setLoading(false);
-      }
-    });
-    return () => unsub();
-  }, []);
 
   return (
     <>
@@ -70,21 +40,21 @@ export default function IncidentsPage() {
           Incidents
         </h1>
 
-        {loading && (
+        {isLoading && (
           <div className="mt-16 flex justify-center">
             <Loader2 className="h-6 w-6 animate-spin text-[#8B8B9D]" />
           </div>
         )}
 
-        {error && (
-          <p className="mt-8 text-sm text-[#E84868]">{error}</p>
+        {isError && (
+          <p className="mt-8 text-sm text-[#E84868]">Failed to load incidents.</p>
         )}
 
-        {!loading && !error && incidents.length === 0 && (
+        {!isLoading && !isError && incidents.length === 0 && (
           <p className="mt-8 text-sm text-[#8B8B9D]">No incidents reported yet.</p>
         )}
 
-        {!loading && incidents.length > 0 && (
+        {!isLoading && incidents.length > 0 && (
           <div className="mt-6 rounded-[21px] border border-[#2A2A34] bg-[#11111B] p-6">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px]">

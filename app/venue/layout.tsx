@@ -6,7 +6,7 @@ import { auth } from "../src/lib/firebase";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import VenueSidebar from "./components/VenueSidebar";
 import { VenueProvider } from "./context/VenueContext";
-import { getVenues, type Venue } from "@/lib/api";
+import { useVenuesQuery } from "@/lib/queries";
 
 export default function VenueLayout({
   children,
@@ -16,8 +16,6 @@ export default function VenueLayout({
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [venues, setVenues] = useState<Venue[]>([]);
-  const [venuesLoading, setVenuesLoading] = useState(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -31,19 +29,7 @@ export default function VenueLayout({
     if (!authLoading && !user) router.push("/login");
   }, [authLoading, user, router]);
 
-  function fetchVenues(u: typeof user) {
-    if (!u) return;
-    setVenuesLoading(true);
-    u.getIdToken()
-      .then((token) => getVenues(token))
-      .then(setVenues)
-      .catch(() => {})
-      .finally(() => setVenuesLoading(false));
-  }
-
-  useEffect(() => {
-    fetchVenues(user);
-  }, [user]);
+  const { data: venues = [], isLoading: venuesLoading, refetch } = useVenuesQuery();
 
   if (authLoading || !user) {
     return (
@@ -54,7 +40,7 @@ export default function VenueLayout({
   }
 
   return (
-    <VenueProvider venues={venues} loading={venuesLoading} refetch={() => fetchVenues(user)}>
+    <VenueProvider venues={venues} loading={venuesLoading} refetch={refetch}>
       <div className="min-h-screen bg-[#101018]">
         <VenueSidebar />
         <div className="pl-[268px]">{children}</div>
