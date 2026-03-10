@@ -128,16 +128,24 @@ export default function VenueDashboard() {
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="ACTIVE INCIDENTS"
-          value={2}
-          meta="Last report 2 mins ago"
-          subtitle="↑ 2 from Last Hour"
+          value={incidents.length}
+          meta={
+            loadingIncidents
+              ? "Loading..."
+              : `${incidents.length} reported`
+          }
+          subtitle="Within this venue"
           accent="red"
         />
         <StatCard
           title="TOTAL TONIGHT"
-          value={2}
-          meta="Last report 2 mins ago"
-          subtitle="↑ 2% vs Last Friday"
+          value={incidents.length}
+          meta={
+            loadingIncidents
+              ? "Loading..."
+              : `${incidents.length} reports in queue`
+          }
+          subtitle="All incidents logged tonight"
           accent="amber"
         />
         <StatCard
