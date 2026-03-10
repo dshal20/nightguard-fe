@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { User } from "firebase/auth";
-import { auth, isAdmin } from "../../src/lib/firebase";
+import { auth } from "../../src/lib/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { getMe } from "@/lib/api";
 import ProfileSetupDialog from "@/components/ProfileSetupDialog";
@@ -22,9 +22,9 @@ export default function SignUpPage() {
     setOut("");
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, password);
-      const destination = isAdmin(cred.user.email) ? "/admin" : "/venue";
       const token = await cred.user.getIdToken();
       const profile = await getMe(token);
+      const destination = "/venue";
 
       if (!profile.firstName || !profile.lastName) {
         setFirebaseUser(cred.user);
