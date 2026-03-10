@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { auth } from "../src/lib/firebase";
-import { joinVenue, getIncidents, type IncidentResponse } from "@/lib/api";
+import { joinVenue } from "@/lib/api";
+import { useIncidentsQuery } from "@/lib/queries";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Building2, KeyRound, Loader2 } from "lucide-react";
@@ -85,27 +86,7 @@ function JoinVenuePrompt() {
 
 export default function VenueDashboard() {
   const { venues, selectedVenue, loading } = useVenueContext();
-  const [incidents, setIncidents] = useState<IncidentResponse[]>([]);
-  const [loadingIncidents, setLoadingIncidents] = useState(true);
-
-  useEffect(() => {
-    if (!selectedVenue) return;
-    setLoadingIncidents(true);
-    async function loadIncidents() {
-      const user = auth.currentUser;
-      if (!user) return;
-      try {
-        const token = await user.getIdToken();
-        const data = await getIncidents(token, selectedVenue!.id);
-        setIncidents(data);
-      } catch {
-        // fetch failed silently
-      } finally {
-        setLoadingIncidents(false);
-      }
-    }
-    loadIncidents();
-  }, [selectedVenue]);
+  const { data: incidents = [], isLoading: loadingIncidents } = useIncidentsQuery(selectedVenue?.id);
 
   if (loading) {
     return (
