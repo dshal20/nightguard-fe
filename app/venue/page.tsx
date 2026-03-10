@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { auth } from "../src/lib/firebase";
-import { joinVenue } from "@/lib/api";
+import { joinVenue, getIncidents, type IncidentResponse } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Building2, KeyRound, Loader2 } from "lucide-react";
@@ -85,6 +85,27 @@ function JoinVenuePrompt() {
 
 export default function VenueDashboard() {
   const { venues, selectedVenue, loading } = useVenueContext();
+  const [incidents, setIncidents] = useState<IncidentResponse[]>([]);
+  const [loadingIncidents, setLoadingIncidents] = useState(true);
+
+  useEffect(() => {
+    if (!selectedVenue) return;
+    setLoadingIncidents(true);
+    async function loadIncidents() {
+      const user = auth.currentUser;
+      if (!user) return;
+      try {
+        const token = await user.getIdToken();
+        const data = await getIncidents(token, selectedVenue!.id);
+        setIncidents(data);
+      } catch {
+        // fetch failed silently
+      } finally {
+        setLoadingIncidents(false);
+      }
+    }
+    loadIncidents();
+  }, [selectedVenue]);
 
   if (loading) {
     return (
@@ -136,7 +157,7 @@ export default function VenueDashboard() {
       </div>
       <div className="mt-8 grid grid-cols-1 gap-8 xl:grid-cols-3">
         <div className="xl:col-span-2">
-          <RecentReports />
+          <RecentReports incidents={incidents} loading={loadingIncidents} />
         </div>
         <div>
           <LiveActivity />

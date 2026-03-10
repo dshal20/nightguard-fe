@@ -22,7 +22,7 @@ const nav = [
   { label: "Dashboard", href: "/venue", icon: <House className={iconClass} /> },
   {
     label: "Incidents",
-    href: "#",
+    href: "/venue/incidents",
     icon: <ShieldAlert className={iconClass} />,
     badge: 3,
   },
