@@ -3,35 +3,38 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
-import { auth, isAdmin } from "../../src/lib/firebase";
-import { getVenues, type Venue } from "@/lib/api";
+import { auth } from "../../src/lib/firebase";
+import { getMe, getVenues, type UserProfile, type Venue } from "@/lib/api";
 
 export default function VenueAccountPage() {
   const router = useRouter();
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [venue, setVenue] = useState<Venue | null>(null);
 
   useEffect(() => {
-    async function loadVenue() {
+    async function load() {
       const user = auth.currentUser;
       if (!user) return;
 
-      setUserEmail(user.email ?? null);
-
       try {
         const token = await user.getIdToken();
-        const venues = await getVenues(token);
+        const [me, venues] = await Promise.all([getMe(token), getVenues(token)]);
+        setProfile(me);
         if (venues.length > 0) setVenue(venues[0]);
       } catch {
-        // ignore venue load failures here
+        // ignore load failures
       }
     }
 
-    loadVenue();
+    load();
   }, []);
 
-  const name = userEmail?.split("@")[0] ?? "User";
-  const status = isAdmin(userEmail) ? "Admin" : "Venue Manager";
+  const displayName =
+    profile?.firstName && profile?.lastName
+      ? `${profile.firstName} ${profile.lastName}`
+      : auth.currentUser?.email?.split("@")[0] ?? "User";
+
+  const status = profile?.role === "ADMIN" ? "Admin" : "Venue Member";
 
   async function handleLogout() {
     await signOut(auth);
@@ -43,9 +46,9 @@ export default function VenueAccountPage() {
       <h1 className="mb-8 text-2xl font-bold text-[#E2E2E2]">Account</h1>
       <div className="max-w-md rounded-[21px] border border-[#2A2A34] bg-[#11111B] p-6">
         <p className="text-sm font-medium text-[#8B8B9D]">Name</p>
-        <p className="mt-1 text-lg font-bold text-[#E2E2E2]">{name}</p>
+        <p className="mt-1 text-lg font-bold text-[#E2E2E2]">{displayName}</p>
 
-        <p className="mt-6 text-sm font-medium text-[#8B8B9D]">Status</p>
+        <p className="mt-6 text-sm font-medium text-[#8B8B9D]">Role</p>
         <p className="mt-1 text-lg font-bold text-[#E2E2E2]">{status}</p>
 
         <p className="mt-6 text-sm font-medium text-[#8B8B9D]">Venue</p>

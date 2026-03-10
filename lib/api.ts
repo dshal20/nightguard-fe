@@ -1,15 +1,28 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+export type UserRole = "ADMIN" | "USER";
+
 export interface UserProfile {
   id: string;
   firstName: string | null;
   lastName: string | null;
   email: string | null;
   phoneNumber: string | null;
+  role: UserRole;
 }
 
 export interface Venue {
   id: string;
+  name: string;
+  streetAddress: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  phoneNumber: string;
+  inviteCode: string;
+}
+
+export interface CreateVenueRequest {
   name: string;
   streetAddress: string;
   city: string;
@@ -58,6 +71,22 @@ export interface IncidentResponse {
   keywords: string[];
   createdAt: string;
   updatedAt: string;
+}
+
+export async function createVenue(
+  token: string,
+  payload: CreateVenueRequest,
+): Promise<Venue> {
+  const res = await fetch(`${API_URL}/venues`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Failed to create venue");
+  return res.json();
 }
 
 export async function joinVenue(token: string, code: string): Promise<void> {
@@ -131,4 +160,3 @@ export async function createIncident(
   if (!res.ok) throw new Error("Failed to create incident");
   return res.json();
 }
-
