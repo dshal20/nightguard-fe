@@ -24,7 +24,6 @@ const nav = [
     label: "Incidents",
     href: "/venue/incidents",
     icon: <ShieldAlert className={iconClass} />,
-    badge: 3,
   },
   { label: "Offenders", href: "#", icon: <FileUser className={iconClass} /> },
   { label: "Staff", href: "#", icon: <Users className={iconClass} /> },
