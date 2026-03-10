@@ -7,7 +7,7 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { House, ShieldAlert, FileUser, Users, Megaphone, MapPin, Settings, User } from "lucide-react";
 import { auth } from "../../src/lib/firebase";
-import { getMe } from "@/lib/api";
+import { getMe, getVenues, type Venue } from "@/lib/api";
 
 const iconClass = "h-4 w-4 shrink-0 text-current";
 
@@ -78,18 +78,23 @@ export default function VenueSidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const [venue, setVenue] = useState<Venue | null>(null);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) return;
       try {
         const token = await user.getIdToken();
-        const profile = await getMe(token);
+        const [profile, venues] = await Promise.all([
+          getMe(token),
+          getVenues(token),
+        ]);
         if (profile.firstName || profile.lastName) {
           setDisplayName([profile.firstName, profile.lastName].filter(Boolean).join(" "));
         } else {
           setDisplayName(user.email?.split("@")[0] ?? "User");
         }
+        if (venues.length > 0) setVenue(venues[0]);
       } catch {
         setDisplayName(user.email?.split("@")[0] ?? "User");
       }
@@ -113,9 +118,11 @@ export default function VenueSidebar() {
       </div>
 
       <div className="mx-3 mb-4 rounded-lg border border-[#2A2A34] bg-[#11111D] p-3">
-        <p className="text-base font-bold text-[#DDDBDB]">NG Midtown</p>
+        <p className="text-base font-bold text-[#DDDBDB]">
+          {venue?.name ?? "Loading…"}
+        </p>
         <p className="text-[10px] font-bold text-[#8B8B9D]">
-          Currently Open • 247 guests
+          {venue ? `${venue.city}, ${venue.state}` : "—"}
         </p>
       </div>
 

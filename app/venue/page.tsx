@@ -1,14 +1,34 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { auth } from "../src/lib/firebase";
+import { getVenues } from "@/lib/api";
 import VenueHeader from "./components/VenueHeader";
 import StatCard from "./components/StatCard";
 import RecentReports from "./components/RecentReports";
 import LiveActivity from "./components/LiveActivity";
 
 export default function VenueDashboard() {
+  const [venueId, setVenueId] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadVenue() {
+      const user = auth.currentUser;
+      if (!user) return;
+      try {
+        const token = await user.getIdToken();
+        const venues = await getVenues(token);
+        if (venues.length > 0) setVenueId(venues[0].id);
+      } catch {
+        // venue fetch failed silently
+      }
+    }
+    loadVenue();
+  }, []);
+
   return (
     <div className="mx-auto max-w-[1172px] px-8 py-8">
-      <VenueHeader />
+      <VenueHeader venueId={venueId ?? ""} />
       <p className="mt-2 font-mono text-xs text-white/[0.28]">
         3h 20m 5s elapsed
       </p>
