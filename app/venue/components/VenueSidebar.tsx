@@ -5,9 +5,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import { House, ShieldAlert, FileUser, Users, Megaphone, MapPin, Settings, User } from "lucide-react";
+import { House, ShieldAlert, FileUser, Users, Megaphone, MapPin, Settings, User, ChevronsUpDown, Check } from "lucide-react";
 import { auth } from "../../src/lib/firebase";
-import { getMe, getVenues, type Venue } from "@/lib/api";
+import { getMe } from "@/lib/api";
+import { useVenueContext } from "../context/VenueContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const iconClass = "h-4 w-4 shrink-0 text-current";
 
@@ -78,23 +85,19 @@ export default function VenueSidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const [displayName, setDisplayName] = useState<string | null>(null);
-  const [venue, setVenue] = useState<Venue | null>(null);
+  const { venues, selectedVenue, setSelectedVenue, loading: venuesLoading } = useVenueContext();
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) return;
       try {
         const token = await user.getIdToken();
-        const [profile, venues] = await Promise.all([
-          getMe(token),
-          getVenues(token),
-        ]);
+        const profile = await getMe(token);
         if (profile.firstName || profile.lastName) {
           setDisplayName([profile.firstName, profile.lastName].filter(Boolean).join(" "));
         } else {
           setDisplayName(user.email?.split("@")[0] ?? "User");
         }
-        if (venues.length > 0) setVenue(venues[0]);
       } catch {
         setDisplayName(user.email?.split("@")[0] ?? "User");
       }
@@ -117,13 +120,53 @@ export default function VenueSidebar() {
         />
       </div>
 
-      <div className="mx-3 mb-4 rounded-lg border border-[#2A2A34] bg-[#11111D] p-3">
-        <p className="text-base font-bold text-[#DDDBDB]">
-          {venue?.name ?? "Loading…"}
-        </p>
-        <p className="text-[10px] font-bold text-[#8B8B9D]">
-          {venue ? `${venue.city}, ${venue.state}` : "—"}
-        </p>
+      <div className="mx-3 mb-4 rounded-lg border border-[#2A2A34] bg-[#11111D] px-2.5 py-2">
+        {venuesLoading ? (
+          <p className="text-xs text-[#8B8B9D]">Loading…</p>
+        ) : venues.length === 0 ? (
+          <p className="text-xs text-[#8B8B9D]">No venues</p>
+        ) : (
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger asChild>
+              <button className="flex w-full items-center gap-2 focus:outline-none">
+                <div className="min-w-0 flex-1 text-left">
+                  <p className="truncate text-sm font-bold text-[#DDDBDB]">
+                    {selectedVenue?.name}
+                  </p>
+                  {selectedVenue && (
+                    <p className="text-[10px] font-bold text-[#8B8B9D]">
+                      {selectedVenue.city}, {selectedVenue.state}
+                    </p>
+                  )}
+                </div>
+                <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-[#8B8B9D]" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="start"
+              sideOffset={8}
+              className="w-[220px] border-[#2A2A34] bg-[#11111D] p-1 text-[#DDDBDB]"
+            >
+              {venues.map((v) => (
+                <DropdownMenuItem
+                  key={v.id}
+                  onSelect={() => setSelectedVenue(v)}
+                  className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 focus:bg-[#1E1E2E] focus:text-white"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{v.name}</p>
+                    <p className="text-[10px] text-[#8B8B9D]">
+                      {v.city}, {v.state}
+                    </p>
+                  </div>
+                  {selectedVenue?.id === v.id && (
+                    <Check className="h-3.5 w-3.5 shrink-0 text-[#8B8B9D]" />
+                  )}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       <nav className="flex-1 overflow-y-auto px-0">
