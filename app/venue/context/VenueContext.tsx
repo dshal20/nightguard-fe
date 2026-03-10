@@ -14,6 +14,7 @@ interface VenueContextValue {
   selectedVenue: Venue | null;
   setSelectedVenue: (v: Venue) => void;
   loading: boolean;
+  refetch: () => void;
 }
 
 const VenueContext = createContext<VenueContextValue>({
@@ -21,6 +22,7 @@ const VenueContext = createContext<VenueContextValue>({
   selectedVenue: null,
   setSelectedVenue: () => {},
   loading: true,
+  refetch: () => {},
 });
 
 export function useVenueContext() {
@@ -31,10 +33,12 @@ export function VenueProvider({
   children,
   venues,
   loading,
+  refetch,
 }: {
   children: ReactNode;
   venues: Venue[];
   loading: boolean;
+  refetch: () => void;
 }) {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
 
@@ -45,7 +49,7 @@ export function VenueProvider({
   }, [venues]);
 
   return (
-    <VenueContext.Provider value={{ venues, selectedVenue, setSelectedVenue, loading }}>
+    <VenueContext.Provider value={{ venues, selectedVenue, setSelectedVenue, loading, refetch }}>
       {children}
     </VenueContext.Provider>
   );

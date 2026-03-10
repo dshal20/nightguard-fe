@@ -31,15 +31,18 @@ export default function VenueLayout({
     if (!authLoading && !user) router.push("/login");
   }, [authLoading, user, router]);
 
-  useEffect(() => {
-    if (!user) return;
+  function fetchVenues(u: typeof user) {
+    if (!u) return;
     setVenuesLoading(true);
-    user
-      .getIdToken()
+    u.getIdToken()
       .then((token) => getVenues(token))
       .then(setVenues)
       .catch(() => {})
       .finally(() => setVenuesLoading(false));
+  }
+
+  useEffect(() => {
+    fetchVenues(user);
   }, [user]);
 
   if (authLoading || !user) {
@@ -51,7 +54,7 @@ export default function VenueLayout({
   }
 
   return (
-    <VenueProvider venues={venues} loading={venuesLoading}>
+    <VenueProvider venues={venues} loading={venuesLoading} refetch={() => fetchVenues(user)}>
       <div className="min-h-screen bg-[#101018]">
         <VenueSidebar />
         <div className="pl-[268px]">{children}</div>

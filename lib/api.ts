@@ -60,6 +60,14 @@ export interface IncidentResponse {
   updatedAt: string;
 }
 
+export async function joinVenue(token: string, code: string): Promise<void> {
+  const res = await fetch(`${API_URL}/venues/join/${encodeURIComponent(code)}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Invalid invite code");
+}
+
 export async function getVenues(token: string): Promise<Venue[]> {
   const res = await fetch(`${API_URL}/venues`, {
     headers: { Authorization: `Bearer ${token}` },
