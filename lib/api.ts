@@ -89,6 +89,17 @@ export async function updateMe(token: string, payload: UpdateProfilePayload): Pr
   return res.json();
 }
 
+export async function getIncidents(
+  token: string,
+  venueId: string,
+): Promise<IncidentResponse[]> {
+  const res = await fetch(`${API_URL}/incidents?venueId=${venueId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch incidents");
+  return res.json();
+}
+
 export async function createIncident(
   token: string,
   payload: CreateIncidentRequest,

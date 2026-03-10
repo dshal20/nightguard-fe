@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { auth } from "../src/lib/firebase";
-import { getVenues } from "@/lib/api";
+import { getVenues, getIncidents, type IncidentResponse } from "@/lib/api";
 import VenueHeader from "./components/VenueHeader";
 import StatCard from "./components/StatCard";
 import RecentReports from "./components/RecentReports";
@@ -10,20 +10,28 @@ import LiveActivity from "./components/LiveActivity";
 
 export default function VenueDashboard() {
   const [venueId, setVenueId] = useState<string | null>(null);
+  const [incidents, setIncidents] = useState<IncidentResponse[]>([]);
+  const [loadingIncidents, setLoadingIncidents] = useState(true);
 
   useEffect(() => {
-    async function loadVenue() {
+    async function loadData() {
       const user = auth.currentUser;
       if (!user) return;
       try {
         const token = await user.getIdToken();
         const venues = await getVenues(token);
-        if (venues.length > 0) setVenueId(venues[0].id);
+        if (venues.length > 0) {
+          setVenueId(venues[0].id);
+          const data = await getIncidents(token, venues[0].id);
+          setIncidents(data);
+        }
       } catch {
-        // venue fetch failed silently
+        // fetch failed silently
+      } finally {
+        setLoadingIncidents(false);
       }
     }
-    loadVenue();
+    loadData();
   }, []);
 
   return (
@@ -64,7 +72,7 @@ export default function VenueDashboard() {
       </div>
       <div className="mt-8 grid grid-cols-1 gap-8 xl:grid-cols-3">
             <div className="xl:col-span-2">
-              <RecentReports />
+              <RecentReports incidents={incidents} loading={loadingIncidents} />
             </div>
             <div>
               <LiveActivity />
