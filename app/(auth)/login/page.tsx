@@ -8,6 +8,7 @@ import { auth } from "../../src/lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { getMe } from "@/lib/api";
 import ProfileSetupDialog from "@/components/ProfileSetupDialog";
+import AbuseReportModal from "@/components/AbuseReportModal";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [out, setOut] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [abuseReportOpen, setAbuseReportOpen] = useState(false);
   const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
   const [pendingRedirect, setPendingRedirect] = useState("");
 
@@ -93,6 +95,16 @@ export default function LoginPage() {
         </Link>
       </p>
 
+      <p className="mt-4 text-center text-xs text-zinc-600">
+        Need to report a safety concern?{" "}
+        <button
+          onClick={() => setAbuseReportOpen(true)}
+          className="font-medium text-zinc-500 hover:text-zinc-300 transition underline underline-offset-2"
+        >
+          Submit an abuse report
+        </button>
+      </p>
+
       {dialogOpen && firebaseUser && (
         <ProfileSetupDialog
           open={dialogOpen}
@@ -100,6 +112,8 @@ export default function LoginPage() {
           onComplete={() => router.push(pendingRedirect)}
         />
       )}
+
+      <AbuseReportModal open={abuseReportOpen} onClose={() => setAbuseReportOpen(false)} />
     </>
   );
 }
