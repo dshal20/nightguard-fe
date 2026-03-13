@@ -56,7 +56,8 @@ export default function EditIncidentModal({ incident, onClose }: Props) {
       setStatus(incident.status);
       setDescription(incident.description);
       setKeywordsInput(incident.keywords.join(", "));
-      setOffenders(incident.offenders ?? []);
+      const ids = new Set(incident.offenderIds ?? []);
+      setOffenders(allOffenders.filter((o) => ids.has(o.id)));
       setError(null);
     }
   }, [incident]);

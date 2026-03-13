@@ -97,7 +97,7 @@ export interface IncidentResponse {
   status: IncidentStatus;
   description: string;
   keywords: string[];
-  offenders: OffenderResponse[];
+  offenderIds: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -292,6 +292,28 @@ export async function createIncident(
     body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error("Failed to create incident");
+  return res.json();
+}
+
+export async function getOffenderIncidents(
+  token: string,
+  offenderId: string,
+): Promise<IncidentResponse[]> {
+  const res = await fetch(`${API_URL}/offenders/${offenderId}/incidents`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch offender incidents");
+  return res.json();
+}
+
+export async function getOffender(
+  token: string,
+  id: string,
+): Promise<OffenderResponse> {
+  const res = await fetch(`${API_URL}/offenders/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch offender");
   return res.json();
 }
 
