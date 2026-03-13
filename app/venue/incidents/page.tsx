@@ -12,6 +12,7 @@ import {
 } from "@tanstack/react-table";
 import { type IncidentSeverity, type IncidentStatus, type IncidentResponse } from "@/lib/api";
 import { Eye, Loader2, Pencil, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import IncidentDetailModal from "../components/IncidentDetailModal";
 import EditIncidentModal from "../components/EditIncidentModal";
 import { useVenueContext } from "../context/VenueContext";
@@ -138,13 +139,23 @@ export default function IncidentsPage() {
       id: "actions",
       enableSorting: false,
       cell: ({ row }) => (
-        <div className="flex items-center gap-1">
-          <button onClick={() => setSelected(row.original)} className="flex items-center justify-center rounded-md p-1.5 text-[#8B8B9D] transition hover:bg-white/[0.06] hover:text-white">
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            onClick={() => setSelected(row.original)}
+            className="h-8 gap-1.5 border border-[#2A2A34] bg-transparent px-3 text-[#8B8B9D] hover:bg-white/5 hover:text-white"
+          >
             <Eye className="h-3.5 w-3.5" />
-          </button>
-          <button onClick={() => setEditing(row.original)} className="flex items-center justify-center rounded-md p-1.5 text-[#8B8B9D] transition hover:bg-white/[0.06] hover:text-white">
+            View
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => setEditing(row.original)}
+            className="h-8 gap-1.5 border border-[#2A2A34] bg-transparent px-3 text-[#8B8B9D] hover:bg-white/5 hover:text-white"
+          >
             <Pencil className="h-3.5 w-3.5" />
-          </button>
+            Edit
+          </Button>
         </div>
       ),
     },
