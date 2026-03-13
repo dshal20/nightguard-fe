@@ -76,7 +76,7 @@ export default function RecentReports({ incidents, loading }: RecentReportsProps
   return (
     <>
       <div className="rounded-xl border border-[#2A2A34] bg-[#11111B]">
-        <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-[#2A2A34]">
           <h2 className="text-lg font-black leading-8 text-[#E2E2E2]">Recent Reports</h2>
           <Link
             href="/venue/incidents"
