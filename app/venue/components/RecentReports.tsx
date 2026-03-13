@@ -71,7 +71,7 @@ export default function RecentReports({ incidents, loading }: RecentReportsProps
       else if (sortKey === "severity")  cmp = SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity];
       else if (sortKey === "status")    cmp = STATUS_ORDER[a.status]     - STATUS_ORDER[b.status];
       return sortDir === "asc" ? cmp : -cmp;
-    }).slice(0, 6);
+    }).slice(0, 10);
   }, [incidents, sortKey, sortDir]);
 
   return (
