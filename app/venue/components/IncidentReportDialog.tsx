@@ -15,6 +15,7 @@ import {
   type IncidentSeverity,
   type OffenderResponse,
 } from "@/lib/api";
+import { useQueryClient } from "@tanstack/react-query";
 import { useOffendersQuery } from "@/lib/queries";
 import OffenderPicker from "./OffenderPicker";
 
@@ -71,6 +72,7 @@ export default function IncidentReportDialog({
   const { data: allOffenders = [] } = useOffendersQuery(venueId);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   function resetForm() {
     setType("");
@@ -129,6 +131,7 @@ export default function IncidentReportDialog({
         offenderIds: offenders.map((o) => o.id),
       });
 
+      queryClient.invalidateQueries({ queryKey: ["incidents"] });
       setSubmitted(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
