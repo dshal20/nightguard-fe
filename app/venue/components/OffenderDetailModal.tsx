@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Ban, ShieldX } from "lucide-react";
-import type { OffenderResponse } from "@/lib/api";
+import type { OffenderResponse, IncidentSeverity } from "@/lib/api";
 import {
   Dialog,
   DialogContent,
@@ -19,8 +19,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useOffenderIncidentsQuery } from "@/lib/queries";
+
+const severityStyle: Record<IncidentSeverity, string> = {
+  LOW:    "border-[#2B36CD] bg-[#2B36CD]/10 text-[#5B6AFF]",
+  MEDIUM: "border-[#DBA940] bg-[#DBA940]/10 text-[#DBA940]",
+  HIGH:   "border-[#EB4869] bg-[#EB4869]/10 text-[#E84868]",
+};
+
+function formatType(type: string) {
+  return type.split("_").map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
+}
 
 const labelClass = "mb-1 block text-[10px] font-bold uppercase tracking-wide text-[#8B8B9D]";
 
@@ -100,6 +112,7 @@ interface Props {
 
 export default function OffenderDetailModal({ offender, onClose }: Props) {
   const [pendingAction, setPendingAction] = useState<ActionType | null>(null);
+  const { data: incidents = [], isLoading: incidentsLoading } = useOffenderIncidentsQuery(offender?.id);
 
   function handleConfirmAction(expiresAt: string | null) {
     // No backend connection yet — just close
@@ -116,7 +129,7 @@ export default function OffenderDetailModal({ offender, onClose }: Props) {
   return (
     <>
       <Dialog open={!!offender} onOpenChange={(v) => { if (!v) onClose(); }}>
-        <DialogContent className="border-[#2A2A34] bg-[#11111D] text-[#DDDBDB] sm:max-w-md">
+        <DialogContent className="max-h-[90vh] overflow-y-auto border-[#2A2A34] bg-[#11111D] text-[#DDDBDB] sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-[#E2E2E2]">
               Offender Profile
@@ -177,6 +190,40 @@ export default function OffenderDetailModal({ offender, onClose }: Props) {
                   <p className="text-sm text-[#DDDBDB]">{offender.notes}</p>
                 </div>
               )}
+
+              {/* Incidents */}
+              <div>
+                <p className={labelClass}>Linked Incidents</p>
+                {incidentsLoading ? (
+                  <div className="space-y-2">
+                    {[0, 1, 2].map((i) => (
+                      <div key={i} className="flex items-center gap-3 rounded-lg border border-[#2A2A34] bg-[#0F0F19] p-3">
+                        <Skeleton className="h-3 w-24 rounded bg-[#26262F]" />
+                        <Skeleton className="h-4 w-14 rounded-md bg-[#26262F]" />
+                        <Skeleton className="ml-auto h-3 w-16 rounded bg-[#1E1E2C]" />
+                      </div>
+                    ))}
+                  </div>
+                ) : incidents.length === 0 ? (
+                  <p className="text-sm text-[#4A4A5A]">No incidents linked.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {incidents.map((inc) => (
+                      <div key={inc.id} className="flex items-center gap-3 rounded-lg border border-[#2A2A34] bg-[#0F0F19] px-3 py-2.5">
+                        <p className="min-w-0 flex-1 truncate text-xs font-medium text-[#DDDBDB]">
+                          {formatType(inc.type)}
+                        </p>
+                        <span className={`shrink-0 rounded-[6px] border px-2 py-0.5 text-[10px] font-medium leading-[18px] ${severityStyle[inc.severity]}`}>
+                          {inc.severity}
+                        </span>
+                        <span className="shrink-0 text-[10px] text-[#4A4A5A]">
+                          {formatDate(inc.createdAt)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {/* Actions */}
               <div className="flex gap-2 border-t border-[#2A2A34] pt-4">

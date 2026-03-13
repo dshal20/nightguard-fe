@@ -1,13 +1,17 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import type { IncidentResponse, IncidentSeverity } from "@/lib/api";
+import { auth } from "@/app/src/lib/firebase";
+import { getOffender } from "@/lib/api";
+import type { IncidentResponse, IncidentSeverity, OffenderResponse } from "@/lib/api";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { User, ArrowUpRight } from "lucide-react";
 
 const severityStyle: Record<IncidentSeverity, string> = {
@@ -17,20 +21,73 @@ const severityStyle: Record<IncidentSeverity, string> = {
 };
 
 function formatType(type: string) {
-  return type
-    .split("_")
-    .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
-    .join(" ");
+  return type.split("_").map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
 }
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString([], {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
+    month: "short", day: "numeric", year: "numeric",
+    hour: "numeric", minute: "2-digit",
   });
+}
+
+function OffenderRow({ id, onClose }: { id: string; onClose: () => void }) {
+  const [offender, setOffender] = useState<OffenderResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetch() {
+      try {
+        const token = await auth.currentUser?.getIdToken();
+        if (!token) return;
+        const data = await getOffender(token, id);
+        if (!cancelled) setOffender(data);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetch();
+    return () => { cancelled = true; };
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-3 rounded-lg border border-[#2A2A34] bg-[#0F0F19] p-3">
+        <Skeleton className="h-9 w-9 shrink-0 rounded-full bg-[#26262F]" />
+        <div className="flex-1 space-y-1.5">
+          <Skeleton className="h-3 w-28 rounded bg-[#26262F]" />
+          <Skeleton className="h-2.5 w-40 rounded bg-[#1E1E2C]" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!offender) return null;
+
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-[#2A2A34] bg-[#0F0F19] p-3">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#26262F] text-xs font-bold text-[#8B8B9D]">
+        {offender.firstName[0]}{offender.lastName[0]}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-bold text-[#DDDBDB]">
+          {offender.firstName} {offender.lastName}
+        </p>
+        {offender.physicalMarkers && (
+          <p className="mt-0.5 text-[11px] text-[#6B6B7D]">{offender.physicalMarkers}</p>
+        )}
+      </div>
+      <Link
+        href={`/venue/offenders?id=${offender.id}`}
+        onClick={onClose}
+        className="flex shrink-0 items-center gap-1 rounded-md border border-[#2A2A34] bg-transparent px-2.5 py-1.5 text-[10px] font-medium text-[#8B8B9D] transition hover:bg-white/5 hover:text-white"
+      >
+        View Profile
+        <ArrowUpRight className="h-3 w-3" />
+      </Link>
+    </div>
+  );
 }
 
 interface Props {
@@ -51,17 +108,13 @@ export default function IncidentDetailModal({ incident, onClose }: Props) {
               {incident ? formatType(incident.type) : ""}
             </DialogTitle>
             {incident && (
-              <span
-                className={`rounded-[7px] border px-2 py-0.5 text-[10px] font-bold leading-[18px] ${severityStyle[incident.severity]}`}
-              >
+              <span className={`rounded-[7px] border px-2 py-0.5 text-[10px] font-bold leading-[18px] ${severityStyle[incident.severity]}`}>
                 {incident.severity}
               </span>
             )}
           </div>
           {incident && (
-            <p className="text-[11px] text-[#8B8B9D]">
-              {formatDateTime(incident.createdAt)}
-            </p>
+            <p className="text-[11px] text-[#8B8B9D]">{formatDateTime(incident.createdAt)}</p>
           )}
         </DialogHeader>
 
@@ -77,10 +130,7 @@ export default function IncidentDetailModal({ incident, onClose }: Props) {
                 <p className="mb-1.5 text-[10px] font-bold uppercase text-[#8B8B9D]">Keywords</p>
                 <div className="flex flex-wrap gap-1.5">
                   {incident.keywords.map((kw, i) => (
-                    <span
-                      key={i}
-                      className="rounded-md border border-[#2A2A34] bg-[#1a1a28] px-2 py-0.5 text-[11px] text-[#DDDBDB]"
-                    >
+                    <span key={i} className="rounded-md border border-[#2A2A34] bg-[#1a1a28] px-2 py-0.5 text-[11px] text-[#DDDBDB]">
                       {kw}
                     </span>
                   ))}
@@ -88,37 +138,14 @@ export default function IncidentDetailModal({ incident, onClose }: Props) {
               </div>
             )}
 
-            {incident.offenders && incident.offenders.length > 0 && (
+            {incident.offenderIds && incident.offenderIds.length > 0 && (
               <div>
                 <p className="mb-1.5 text-[10px] font-bold uppercase text-[#8B8B9D]">
-                  Offenders ({incident.offenders.length})
+                  Offenders ({incident.offenderIds.length})
                 </p>
                 <div className="space-y-2">
-                  {incident.offenders.map((o) => (
-                    <div
-                      key={o.id}
-                      className="flex items-center gap-3 rounded-lg border border-[#2A2A34] bg-[#0F0F19] p-3"
-                    >
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#26262F] text-xs font-bold text-[#8B8B9D]">
-                        {o.firstName[0]}{o.lastName[0]}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-[#DDDBDB]">
-                          {o.firstName} {o.lastName}
-                        </p>
-                        {o.physicalMarkers && (
-                          <p className="mt-0.5 text-[11px] text-[#6B6B7D]">{o.physicalMarkers}</p>
-                        )}
-                      </div>
-                      <Link
-                        href={`/venue/offenders?id=${o.id}`}
-                        onClick={onClose}
-                        className="flex shrink-0 items-center gap-1 rounded-md border border-[#2A2A34] bg-transparent px-2.5 py-1.5 text-[10px] font-medium text-[#8B8B9D] transition hover:bg-white/5 hover:text-white"
-                      >
-                        View Profile
-                        <ArrowUpRight className="h-3 w-3" />
-                      </Link>
-                    </div>
+                  {incident.offenderIds.map((id) => (
+                    <OffenderRow key={id} id={id} onClose={onClose} />
                   ))}
                 </div>
               </div>
@@ -131,9 +158,7 @@ export default function IncidentDetailModal({ incident, onClose }: Props) {
                   <User className="h-3.5 w-3.5 text-[#8B8B9D]" />
                 </div>
                 <div>
-                  {reporterName && (
-                    <p className="text-xs font-bold text-[#DDDBDB]">{reporterName}</p>
-                  )}
+                  {reporterName && <p className="text-xs font-bold text-[#DDDBDB]">{reporterName}</p>}
                   <p className="text-[11px] text-[#8B8B9D]">{reporter?.email}</p>
                 </div>
               </div>
