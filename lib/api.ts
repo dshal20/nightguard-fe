@@ -53,12 +53,37 @@ export type IncidentType =
 
 export type IncidentSeverity = "LOW" | "MEDIUM" | "HIGH";
 
+export interface OffenderResponse {
+  id: string;
+  venueId: string;
+  firstName: string;
+  lastName: string;
+  physicalMarkers?: string;
+  riskScore?: number;
+  currentStatus?: string;
+  globalId?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateOffenderRequest {
+  venueId: string;
+  firstName: string;
+  lastName: string;
+  physicalMarkers?: string;
+  riskScore?: number;
+  currentStatus?: string;
+  notes?: string;
+}
+
 export interface CreateIncidentRequest {
   venueId: string;
   type: IncidentType;
   severity: IncidentSeverity;
   description: string;
   keywords: string[];
+  offenderIds?: string[];
 }
 
 export type IncidentStatus = "ACTIVE" | "COMPLETED";
@@ -72,6 +97,7 @@ export interface IncidentResponse {
   status: IncidentStatus;
   description: string;
   keywords: string[];
+  offenders: OffenderResponse[];
   createdAt: string;
   updatedAt: string;
 }
@@ -233,6 +259,7 @@ export interface UpdateIncidentRequest {
   status?: IncidentStatus;
   description?: string;
   keywords?: string[];
+  offenderIds?: string[];
 }
 
 export async function updateIncident(
@@ -265,5 +292,32 @@ export async function createIncident(
     body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error("Failed to create incident");
+  return res.json();
+}
+
+export async function getOffenders(
+  token: string,
+  venueId: string,
+): Promise<OffenderResponse[]> {
+  const res = await fetch(`${API_URL}/offenders?venueId=${venueId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch offenders");
+  return res.json();
+}
+
+export async function createOffender(
+  token: string,
+  payload: CreateOffenderRequest,
+): Promise<OffenderResponse> {
+  const res = await fetch(`${API_URL}/offenders`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Failed to create offender");
   return res.json();
 }

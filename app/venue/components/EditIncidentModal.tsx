@@ -5,7 +5,9 @@ import { Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { auth } from "../../src/lib/firebase";
 import { updateIncident } from "@/lib/api";
-import type { IncidentResponse, IncidentType, IncidentSeverity, IncidentStatus } from "@/lib/api";
+import type { IncidentResponse, IncidentType, IncidentSeverity, IncidentStatus, OffenderResponse } from "@/lib/api";
+import { useOffendersQuery } from "@/lib/queries";
+import OffenderPicker from "./OffenderPicker";
 import {
   Dialog,
   DialogContent,
@@ -42,7 +44,9 @@ export default function EditIncidentModal({ incident, onClose }: Props) {
   const [status, setStatus] = useState<IncidentStatus>("ACTIVE");
   const [description, setDescription] = useState("");
   const [keywordsInput, setKeywordsInput] = useState("");
+  const [offenders, setOffenders] = useState<OffenderResponse[]>([]);
   const [saving, setSaving] = useState(false);
+  const { data: allOffenders = [] } = useOffendersQuery(incident?.venueId);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -52,6 +56,7 @@ export default function EditIncidentModal({ incident, onClose }: Props) {
       setStatus(incident.status);
       setDescription(incident.description);
       setKeywordsInput(incident.keywords.join(", "));
+      setOffenders(incident.offenders ?? []);
       setError(null);
     }
   }, [incident]);
@@ -69,6 +74,7 @@ export default function EditIncidentModal({ incident, onClose }: Props) {
         status,
         description,
         keywords: keywordsInput.split(",").map((k) => k.trim()).filter(Boolean),
+        offenderIds: offenders.map((o) => o.id),
       });
       queryClient.invalidateQueries({ queryKey: ["incidents"] });
       onClose();
@@ -154,6 +160,14 @@ export default function EditIncidentModal({ incident, onClose }: Props) {
               />
               <p className="mt-1 text-[10px] text-[#6B6B7D]">Comma-separated</p>
             </div>
+
+            {/* Offenders */}
+            <OffenderPicker
+              venueId={incident.venueId}
+              allOffenders={allOffenders}
+              selected={offenders}
+              onChange={setOffenders}
+            />
 
             {error && <p className="text-xs text-red-400">{error}</p>}
 

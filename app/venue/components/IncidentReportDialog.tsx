@@ -13,7 +13,10 @@ import {
   createIncident,
   type IncidentType,
   type IncidentSeverity,
+  type OffenderResponse,
 } from "@/lib/api";
+import { useOffendersQuery } from "@/lib/queries";
+import OffenderPicker from "./OffenderPicker";
 
 const INCIDENT_TYPES: IncidentType[] = [
   "VERBAL_HARASSMENT",
@@ -63,7 +66,9 @@ export default function IncidentReportDialog({
   const [description, setDescription] = useState("");
   const [keywordInput, setKeywordInput] = useState("");
   const [keywords, setKeywords] = useState<string[]>([]);
+  const [offenders, setOffenders] = useState<OffenderResponse[]>([]);
   const [submitted, setSubmitted] = useState(false);
+  const { data: allOffenders = [] } = useOffendersQuery(venueId);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -73,6 +78,7 @@ export default function IncidentReportDialog({
     setDescription("");
     setKeywordInput("");
     setKeywords([]);
+    setOffenders([]);
     setSubmitted(false);
     setSubmitting(false);
     setError(null);
@@ -120,6 +126,7 @@ export default function IncidentReportDialog({
         severity,
         description: description.trim(),
         keywords,
+        offenderIds: offenders.map((o) => o.id),
       });
 
       setSubmitted(true);
@@ -287,6 +294,14 @@ export default function IncidentReportDialog({
               </div>
             )}
           </div>
+
+          {/* Offenders */}
+          <OffenderPicker
+            venueId={venueId}
+            allOffenders={allOffenders}
+            selected={offenders}
+            onChange={setOffenders}
+          />
 
           {error && (
             <p className="rounded-lg border border-[#EB4869]/30 bg-[#EB4869]/10 px-4 py-2 text-sm text-[#E84868]">
