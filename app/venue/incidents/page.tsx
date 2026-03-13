@@ -1,11 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { type IncidentSeverity, type IncidentResponse } from "@/lib/api";
+import { type IncidentSeverity, type IncidentStatus, type IncidentResponse } from "@/lib/api";
 import { Eye, Loader2 } from "lucide-react";
 import IncidentDetailModal from "../components/IncidentDetailModal";
 import { useVenueContext } from "../context/VenueContext";
 import { useIncidentsQuery } from "@/lib/queries";
+
+const statusStyle: Record<IncidentStatus, string> = {
+  ACTIVE:    "border-amber-400 bg-amber-400/10 text-amber-400",
+  COMPLETED: "border-green-400 bg-green-400/10 text-green-400",
+};
 
 const severityStyle: Record<IncidentSeverity, string> = {
   LOW: "border-[#2B36CD] bg-[#2B36CD]/10 text-[#5B6AFF]",
@@ -66,6 +71,7 @@ export default function IncidentsPage() {
                     <th className="pb-3 pr-4">Description</th>
                     <th className="pb-3 pr-4">Keywords</th>
                     <th className="pb-3 pr-4 text-right">Severity</th>
+                    <th className="pb-3 pr-4">Status</th>
                     <th className="pb-3" />
                   </tr>
                 </thead>
@@ -104,6 +110,13 @@ export default function IncidentsPage() {
                           className={`rounded-[7px] border px-2 py-0.5 text-[10px] font-bold leading-[18px] ${severityStyle[inc.severity]}`}
                         >
                           {inc.severity}
+                        </span>
+                      </td>
+                      <td className="py-4 pr-4">
+                        <span
+                          className={`rounded-[7px] border px-2 py-0.5 text-[10px] font-bold leading-[18px] ${statusStyle[inc.status]}`}
+                        >
+                          {inc.status}
                         </span>
                       </td>
                       <td className="py-4">

@@ -61,12 +61,15 @@ export interface CreateIncidentRequest {
   keywords: string[];
 }
 
+export type IncidentStatus = "ACTIVE" | "COMPLETED";
+
 export interface IncidentResponse {
   id: string;
   venueId: string;
   reporter: UserProfile;
   type: IncidentType;
   severity: IncidentSeverity;
+  status: IncidentStatus;
   description: string;
   keywords: string[];
   createdAt: string;
