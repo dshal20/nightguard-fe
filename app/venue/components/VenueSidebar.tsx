@@ -47,10 +47,12 @@ function NavGroup({
   items,
   pathname,
   divider = true,
+  onLinkClick,
 }: {
   items: NavItem[];
   pathname: string;
   divider?: boolean;
+  onLinkClick?: () => void;
 }) {
   return (
     <div>
@@ -62,6 +64,7 @@ function NavGroup({
             <li key={item.label}>
               <Link
                 href={item.href}
+                onClick={onLinkClick}
                 className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${
                   active
                     ? "bg-[#16162A] text-white"
@@ -105,7 +108,13 @@ function NavGroup({
   );
 }
 
-export default function VenueSidebar() {
+export default function VenueSidebar({
+  open = false,
+  onClose,
+}: {
+  open?: boolean;
+  onClose?: () => void;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const [displayName, setDisplayName] = useState<string | null>(null);
@@ -135,7 +144,7 @@ export default function VenueSidebar() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 z-10 flex h-screen w-67 flex-col border-r border-[#1A1A26] bg-[#0F0F19]">
+    <aside className={`fixed left-0 top-0 z-10 flex h-screen w-67 flex-col border-r border-[#1A1A26] bg-[#0F0F19] transition-transform duration-300 lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
       {/* Logo */}
       <div className="px-6 py-5">
         <img
@@ -200,9 +209,9 @@ export default function VenueSidebar() {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-2">
-        <NavGroup items={nav}      pathname={pathname ?? ""} divider={false} />
-        <NavGroup items={network}  pathname={pathname ?? ""} />
-        <NavGroup items={settings} pathname={pathname ?? ""} />
+        <NavGroup items={nav}      pathname={pathname ?? ""} divider={false} onLinkClick={onClose} />
+        <NavGroup items={network}  pathname={pathname ?? ""} onLinkClick={onClose} />
+        <NavGroup items={settings} pathname={pathname ?? ""} onLinkClick={onClose} />
       </nav>
 
       {/* User footer */}

@@ -83,19 +83,19 @@ export default function IncidentsPage() {
                       key={inc.id}
                       className="border-b border-[#2A2A34] transition hover:bg-white/[0.02]"
                     >
-                      <td className="py-4 pr-4 text-xs font-medium text-[#DDDBDB] whitespace-nowrap">
+                      <td className="py-2 pr-4 text-xs font-medium text-[#DDDBDB] whitespace-nowrap">
                         {formatDateTime(inc.createdAt)}
                       </td>
-                      <td className="py-4 pr-4 text-xs text-[#8B8B9D] whitespace-nowrap">
+                      <td className="py-2 pr-4 text-xs text-[#8B8B9D] whitespace-nowrap">
                         {dayjs(inc.updatedAt).fromNow()}
                       </td>
-                      <td className="py-4 pr-4 text-xs font-bold text-white whitespace-nowrap">
+                      <td className="py-2 pr-4 text-xs font-bold text-white whitespace-nowrap">
                         {formatType(inc.type)}
                       </td>
-                      <td className="py-4 pr-4 text-xs font-medium text-[#8B8B9D] max-w-[260px] truncate">
+                      <td className="py-2 pr-4 text-xs font-medium text-[#8B8B9D] max-w-[260px] truncate">
                         {inc.description}
                       </td>
-                      <td className="py-4 pr-4">
+                      <td className="py-2 pr-4">
                         <div className="flex flex-wrap gap-1">
                           {inc.keywords.map((kw, i) => (
                             <span
@@ -107,14 +107,14 @@ export default function IncidentsPage() {
                           ))}
                         </div>
                       </td>
-                      <td className="py-4 pr-4 text-right">
+                      <td className="py-2 pr-4 text-right">
                         <span
                           className={`rounded-[7px] border px-2 py-0.5 text-[10px] font-bold leading-[18px] ${severityStyle[inc.severity]}`}
                         >
                           {inc.severity}
                         </span>
                       </td>
-                      <td className="py-4 pr-4 w-28">
+                      <td className="py-2 pr-4 w-28">
                         <span
                           className={`rounded-[7px] border px-2 py-0.5 text-[10px] font-bold leading-[18px] ${statusStyle[inc.status]}`}
                         >
