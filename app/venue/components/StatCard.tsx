@@ -18,12 +18,14 @@ export default function StatCard({
   meta,
   subtitle,
   accent,
+  progress,
 }: {
   title: string;
   value: string | number;
   meta?: string;
   subtitle?: string;
   accent: Accent;
+  progress?: number; // 0–1
 }) {
   const style = accents[accent];
   return (
@@ -51,6 +53,14 @@ export default function StatCard({
           >
             {subtitle}
           </p>
+        )}
+        {progress != null && (
+          <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-[#1E1E2E]">
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{ width: `${Math.min(progress, 1) * 100}%`, background: style.blurColor }}
+            />
+          </div>
         )}
       </div>
     </div>

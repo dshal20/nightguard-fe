@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { auth } from "../src/lib/firebase";
 import { joinVenue } from "@/lib/api";
-import { useIncidentsQuery } from "@/lib/queries";
+import { useIncidentsQuery, useCapacityQuery, useHeadcountsQuery } from "@/lib/queries";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime);
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Building2, KeyRound, Loader2 } from "lucide-react";
@@ -87,6 +91,14 @@ function JoinVenuePrompt() {
 export default function VenueDashboard() {
   const { venues, selectedVenue, loading } = useVenueContext();
   const { data: incidents = [], isLoading: loadingIncidents } = useIncidentsQuery(selectedVenue?.id);
+  const { data: capacityData } = useCapacityQuery(selectedVenue?.id);
+  const { data: headcounts = [] } = useHeadcountsQuery(selectedVenue?.id);
+
+  const maxCapacity = capacityData?.capacity ?? null;
+  const latestHeadcount = headcounts.length > 0 ? headcounts[headcounts.length - 1] : null;
+  const currentCount = latestHeadcount?.headcount ?? 0;
+  const capacityPct = maxCapacity ? currentCount / maxCapacity : null;
+  const capacityAccent = capacityPct == null ? "green" : capacityPct >= 1 ? "red" : capacityPct >= 0.9 ? "amber" : "green";
 
   if (loading) {
     return (
@@ -131,10 +143,17 @@ export default function VenueDashboard() {
         />
         <StatCard
           title="CURRENT CAPACITY"
-          value={247}
-          meta="Last reported 1 min ago"
-          subtitle="of 300 Max Capacity"
-          accent="green"
+          value={maxCapacity == null ? "—" : currentCount}
+          meta={
+            maxCapacity == null
+              ? "No capacity set"
+              : latestHeadcount
+              ? `Updated ${dayjs(latestHeadcount.createdAt).fromNow()}`
+              : "No headcount logged"
+          }
+          subtitle={maxCapacity != null ? `of ${maxCapacity} max capacity` : undefined}
+          accent={capacityAccent}
+          progress={capacityPct ?? undefined}
         />
         <StatCard
           title="NETWORK ALERTS"
