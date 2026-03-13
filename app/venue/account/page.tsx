@@ -42,7 +42,7 @@ export default function VenueAccountPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1172px] px-8 py-8">
+    <div className="mx-auto max-w-screen-2xl px-8 py-8">
       <h1 className="mb-8 text-2xl font-bold text-[#E2E2E2]">Account</h1>
       <div className="max-w-md rounded-[21px] border border-[#2A2A34] bg-[#11111B] p-6">
         <p className="text-sm font-medium text-[#8B8B9D]">Name</p>

@@ -85,7 +85,7 @@ export default function IncidentsPage() {
 
   return (
     <>
-      <div className="mx-auto max-w-[1172px] px-8 py-8">
+      <div className="mx-auto max-w-screen-2xl px-8 py-8">
         <h1 className="text-[28px] font-black leading-8 text-[#E2E2E2]">Incidents</h1>
 
         {isLoading && (
@@ -103,7 +103,7 @@ export default function IncidentsPage() {
         )}
 
         {!isLoading && incidents.length > 0 && (
-          <div className="mt-6 rounded-[21px] border border-[#2A2A34] bg-[#11111B]">
+          <div className="mt-6 rounded-xl border border-[#2A2A34] bg-[#11111B]">
             <Table>
               <TableHeader>
                 <TableRow className="border-[#2A2A34] hover:bg-transparent">

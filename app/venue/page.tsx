@@ -113,7 +113,7 @@ export default function VenueDashboard() {
   }
 
   return (
-    <div className="mx-auto max-w-[1172px] px-8 py-8">
+    <div className="mx-auto max-w-screen-2xl px-8 py-8">
       <VenueHeader venueId={selectedVenue?.id ?? ""} />
       <p className="mt-2 font-mono text-xs text-white/[0.28]">
         3h 20m 5s elapsed
