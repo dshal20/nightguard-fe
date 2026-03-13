@@ -25,6 +25,11 @@ const nav = [
     href: "/venue/incidents",
     icon: <ShieldAlert className={iconClass} />,
   },
+  {
+    label: "Capacity",
+    href: "/venue/capacity",
+    icon: <Users className={iconClass} />,
+  },
   { label: "Offenders", href: "/venue/offenders", icon: <FileUser className={iconClass} /> },
   { label: "Staff", href: "#", icon: <Users className={iconClass} /> },
 ];
