@@ -2,10 +2,15 @@
 
 import { useState } from "react";
 import { type IncidentSeverity, type IncidentStatus, type IncidentResponse } from "@/lib/api";
-import { Eye, Loader2 } from "lucide-react";
+import { Eye, Loader2, Pencil } from "lucide-react";
 import IncidentDetailModal from "../components/IncidentDetailModal";
+import EditIncidentModal from "../components/EditIncidentModal";
 import { useVenueContext } from "../context/VenueContext";
 import { useIncidentsQuery } from "@/lib/queries";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime);
 
 const statusStyle: Record<IncidentStatus, string> = {
   ACTIVE:    "border-amber-400 bg-amber-400/10 text-amber-400",
@@ -25,18 +30,15 @@ function formatType(type: string) {
     .join(" ");
 }
 
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
+function formatDateTime(iso: string) {
+  return dayjs(iso).format("MMM D, YYYY h:mm A");
 }
 
 export default function IncidentsPage() {
   const { selectedVenue } = useVenueContext();
   const { data: incidents = [], isLoading, isError } = useIncidentsQuery(selectedVenue?.id);
   const [selected, setSelected] = useState<IncidentResponse | null>(null);
+  const [editing, setEditing] = useState<IncidentResponse | null>(null);
 
   return (
     <>
@@ -65,13 +67,13 @@ export default function IncidentsPage() {
               <table className="w-full min-w-[640px]">
                 <thead>
                   <tr className="text-left text-[8px] font-bold uppercase leading-[18px] text-[#8B8B9D]">
-                    <th className="pb-3 pr-4">Date</th>
-                    <th className="pb-3 pr-4">Time</th>
+                    <th className="pb-3 pr-4">Date & Time</th>
+                    <th className="pb-3 pr-4">Last Updated</th>
                     <th className="pb-3 pr-4">Type</th>
                     <th className="pb-3 pr-4">Description</th>
                     <th className="pb-3 pr-4">Keywords</th>
                     <th className="pb-3 pr-4 text-right">Severity</th>
-                    <th className="pb-3 pr-4">Status</th>
+                    <th className="pb-3 pr-4 w-28">Status</th>
                     <th className="pb-3" />
                   </tr>
                 </thead>
@@ -81,11 +83,11 @@ export default function IncidentsPage() {
                       key={inc.id}
                       className="border-b border-[#2A2A34] transition hover:bg-white/[0.02]"
                     >
-                      <td className="py-4 pr-4 text-xs font-medium text-[#8B8B9D] whitespace-nowrap">
-                        {formatDate(inc.createdAt)}
+                      <td className="py-4 pr-4 text-xs font-medium text-[#DDDBDB] whitespace-nowrap">
+                        {formatDateTime(inc.createdAt)}
                       </td>
-                      <td className="py-4 pr-4 text-xs font-bold text-white whitespace-nowrap">
-                        {formatTime(inc.createdAt)}
+                      <td className="py-4 pr-4 text-xs text-[#8B8B9D] whitespace-nowrap">
+                        {dayjs(inc.updatedAt).fromNow()}
                       </td>
                       <td className="py-4 pr-4 text-xs font-bold text-white whitespace-nowrap">
                         {formatType(inc.type)}
@@ -112,7 +114,7 @@ export default function IncidentsPage() {
                           {inc.severity}
                         </span>
                       </td>
-                      <td className="py-4 pr-4">
+                      <td className="py-4 pr-4 w-28">
                         <span
                           className={`rounded-[7px] border px-2 py-0.5 text-[10px] font-bold leading-[18px] ${statusStyle[inc.status]}`}
                         >
@@ -120,12 +122,20 @@ export default function IncidentsPage() {
                         </span>
                       </td>
                       <td className="py-4">
-                        <button
-                          onClick={() => setSelected(inc)}
-                          className="flex items-center justify-center rounded-md p-1.5 text-[#8B8B9D] transition hover:bg-white/[0.06] hover:text-white"
-                        >
-                          <Eye className="h-3.5 w-3.5" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => setSelected(inc)}
+                            className="flex items-center justify-center rounded-md p-1.5 text-[#8B8B9D] transition hover:bg-white/[0.06] hover:text-white"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setEditing(inc)}
+                            className="flex items-center justify-center rounded-md p-1.5 text-[#8B8B9D] transition hover:bg-white/[0.06] hover:text-white"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -137,6 +147,7 @@ export default function IncidentsPage() {
       </div>
 
       <IncidentDetailModal incident={selected} onClose={() => setSelected(null)} />
+      <EditIncidentModal incident={editing} onClose={() => setEditing(null)} />
     </>
   );
 }

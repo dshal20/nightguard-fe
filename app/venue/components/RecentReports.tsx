@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Eye, Loader2 } from "lucide-react";
+import { Eye, Loader2, Pencil } from "lucide-react";
 import type { IncidentResponse, IncidentSeverity, IncidentStatus } from "@/lib/api";
 import IncidentDetailModal from "./IncidentDetailModal";
+import EditIncidentModal from "./EditIncidentModal";
 
 const statusStyle: Record<IncidentStatus, string> = {
   ACTIVE:    "border-amber-400 bg-amber-400/10 text-amber-400",
@@ -36,6 +37,7 @@ interface RecentReportsProps {
 export default function RecentReports({ incidents, loading }: RecentReportsProps) {
   const recent = incidents.slice(0, 6);
   const [selected, setSelected] = useState<IncidentResponse | null>(null);
+  const [editing, setEditing] = useState<IncidentResponse | null>(null);
 
   return (
     <>
@@ -70,7 +72,7 @@ export default function RecentReports({ incidents, loading }: RecentReportsProps
                   <th className="pb-3 pr-4">TIME</th>
                   <th className="pb-3 pr-4">TITLE / DESCRIPTION</th>
                   <th className="pb-3 pr-4 text-right">SEVERITY</th>
-                  <th className="pb-3 pr-4">STATUS</th>
+                  <th className="pb-3 pr-4 w-28">STATUS</th>
                   <th className="pb-3" />
                 </tr>
               </thead>
@@ -96,7 +98,7 @@ export default function RecentReports({ incidents, loading }: RecentReportsProps
                         {inc.severity}
                       </span>
                     </td>
-                    <td className="py-4 pr-4">
+                    <td className="py-4 pr-4 w-28">
                       <span
                         className={`rounded-[7px] border px-2 py-0.5 text-[10px] font-bold leading-[18px] ${statusStyle[inc.status]}`}
                       >
@@ -104,12 +106,20 @@ export default function RecentReports({ incidents, loading }: RecentReportsProps
                       </span>
                     </td>
                     <td className="py-4">
-                      <button
-                        onClick={() => setSelected(inc)}
-                        className="flex items-center justify-center rounded-md p-1.5 text-[#8B8B9D] transition hover:bg-white/[0.06] hover:text-white"
-                      >
-                        <Eye className="h-3.5 w-3.5" />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => setSelected(inc)}
+                          className="flex items-center justify-center rounded-md p-1.5 text-[#8B8B9D] transition hover:bg-white/[0.06] hover:text-white"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setEditing(inc)}
+                          className="flex items-center justify-center rounded-md p-1.5 text-[#8B8B9D] transition hover:bg-white/[0.06] hover:text-white"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -120,6 +130,7 @@ export default function RecentReports({ incidents, loading }: RecentReportsProps
       </div>
 
       <IncidentDetailModal incident={selected} onClose={() => setSelected(null)} />
+      <EditIncidentModal incident={editing} onClose={() => setEditing(null)} />
     </>
   );
 }

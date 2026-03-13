@@ -227,6 +227,31 @@ export async function addHeadcount(
   return res.json();
 }
 
+export interface UpdateIncidentRequest {
+  type?: IncidentType;
+  severity?: IncidentSeverity;
+  status?: IncidentStatus;
+  description?: string;
+  keywords?: string[];
+}
+
+export async function updateIncident(
+  token: string,
+  id: string,
+  payload: UpdateIncidentRequest,
+): Promise<IncidentResponse> {
+  const res = await fetch(`${API_URL}/incidents/${id}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Failed to update incident");
+  return res.json();
+}
+
 export async function createIncident(
   token: string,
   payload: CreateIncidentRequest,
