@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Users, Clock, CheckCircle2, RotateCcw, Settings } from "lucide-react";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import { useQueryClient } from "@tanstack/react-query";
 import { auth } from "../../src/lib/firebase";
 import { setCapacity, addHeadcount } from "@/lib/api";
@@ -13,6 +15,8 @@ import {
 import { useVenueContext } from "../context/VenueContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+
+dayjs.extend(relativeTime);
 
 function getCapacityStatus(count: number, max: number) {
   const pct = count / max;
@@ -41,13 +45,8 @@ function getCapacityStatus(count: number, max: number) {
   };
 }
 
-function formatTime(iso: string) {
-  const d = new Date(iso);
-  const month = d.toLocaleDateString([], { month: "short" });
-  const day = d.getDate();
-  const weekday = d.toLocaleDateString([], { weekday: "long" });
-  const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  return `${month} ${day} ${weekday} ${time}`;
+function fromNow(iso: string) {
+  return dayjs(iso).fromNow();
 }
 
 function SetCapacityPrompt({
@@ -140,7 +139,7 @@ export default function CapacityPage() {
     if (latest != null) {
       setCount(latest.headcount);
     }
-  }, [latest?.id]);
+  }, [latest]);
 
   function handleCapacitySaved() {
     queryClient.invalidateQueries({ queryKey: ["capacity", venueId] });
@@ -315,14 +314,14 @@ export default function CapacityPage() {
             Log
           </p>
           <div className="rounded-xl border border-[#2A2A34] bg-[#11111B] divide-y divide-[#2A2A34]">
-            {[...headcounts].reverse().map((entry) => (
+            {[...headcounts].reverse().slice(0, 10).map((entry) => (
               <div key={entry.id} className="flex items-center gap-3 px-4 py-3">
                 <Clock className="h-3.5 w-3.5 shrink-0 text-[#8B8B9D]" />
                 <span className="text-sm font-bold text-[#DDDBDB]">
                   {entry.headcount}
                 </span>
                 <span className="text-xs text-[#8B8B9D]">
-                  {formatTime(entry.createdAt)}
+                  {fromNow(entry.createdAt)}
                 </span>
                 {entry.recordedBy && (
                   <div className="ml-auto">

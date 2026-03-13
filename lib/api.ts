@@ -154,11 +154,16 @@ export interface VenueCapacityResponse {
   updatedAt: string;
 }
 
+export interface HeadcountRecordedBy {
+  firstName: string;
+  lastName: string;
+}
+
 export interface VenueHeadcountResponse {
   id: string;
   venueId: string;
   headcount: number;
-  recordedBy: Record<string, string> | null;
+  recordedBy: HeadcountRecordedBy | null;
   createdAt: string;
 }
 
