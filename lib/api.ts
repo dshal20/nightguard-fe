@@ -145,6 +145,80 @@ export async function getIncidents(
   return res.json();
 }
 
+export interface VenueCapacityResponse {
+  id: string;
+  venueId: string;
+  updatedBy: string;
+  capacity: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface VenueHeadcountResponse {
+  id: string;
+  venueId: string;
+  headcount: number;
+  recordedBy: Record<string, string> | null;
+  createdAt: string;
+}
+
+export async function getCapacity(
+  token: string,
+  venueId: string,
+): Promise<VenueCapacityResponse | null> {
+  const res = await fetch(`${API_URL}/venues/${venueId}/capacity`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error("Failed to fetch capacity");
+  return res.json();
+}
+
+export async function setCapacity(
+  token: string,
+  venueId: string,
+  capacity: number,
+): Promise<VenueCapacityResponse> {
+  const res = await fetch(`${API_URL}/venues/${venueId}/capacity`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ capacity }),
+  });
+  if (!res.ok) throw new Error("Failed to set capacity");
+  return res.json();
+}
+
+export async function getHeadcounts(
+  token: string,
+  venueId: string,
+): Promise<VenueHeadcountResponse[]> {
+  const res = await fetch(`${API_URL}/venues/${venueId}/headcount`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch headcounts");
+  return res.json();
+}
+
+export async function addHeadcount(
+  token: string,
+  venueId: string,
+  headcount: number,
+): Promise<VenueHeadcountResponse> {
+  const res = await fetch(`${API_URL}/venues/${venueId}/headcount`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ headcount }),
+  });
+  if (!res.ok) throw new Error("Failed to log headcount");
+  return res.json();
+}
+
 export async function createIncident(
   token: string,
   payload: CreateIncidentRequest,
