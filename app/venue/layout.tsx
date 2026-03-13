@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { auth } from "../src/lib/firebase";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import VenueSidebar from "./components/VenueSidebar";
+import TopBar from "./components/TopBar";
 import { VenueProvider } from "./context/VenueContext";
 import { useVenuesQuery } from "@/lib/queries";
 import { Menu } from "lucide-react";
@@ -65,6 +66,7 @@ export default function VenueLayout({
             </button>
           </div>
 
+          <TopBar />
           {children}
         </div>
       </div>

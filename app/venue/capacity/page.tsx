@@ -203,17 +203,6 @@ export default function CapacityPage() {
   if (!maxCapacity || editingCapacity) {
     return (
       <div className="min-h-screen bg-[#101018]">
-        <div className="px-4 pt-6">
-          <div className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-[#8B8B9D]" />
-            <h1 className="text-2xl font-black text-[#E2E2E2]">Headcount</h1>
-          </div>
-          {selectedVenue && (
-            <p className="mt-0.5 text-sm text-[#8B8B9D]">
-              {selectedVenue.name}
-            </p>
-          )}
-        </div>
         <SetCapacityPrompt venueId={venueId!} onSaved={handleCapacitySaved} />
       </div>
     );
@@ -230,9 +219,8 @@ export default function CapacityPage() {
         {/* Header */}
         <div className="mb-5 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-black tracking-tight text-[#E2E2E2]">Headcount</h1>
             {selectedVenue && (
-              <p className="mt-0.5 text-xs text-[#6B6B7D]">{selectedVenue.name}</p>
+              <p className="text-xs text-[#6B6B7D]">{selectedVenue.name}</p>
             )}
           </div>
           <button

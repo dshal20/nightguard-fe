@@ -162,8 +162,6 @@ export default function IncidentsPage() {
   return (
     <>
       <div className="mx-auto max-w-screen-2xl px-8 py-8">
-        <h1 className="text-[28px] font-black leading-8 text-[#E2E2E2]">Incidents</h1>
-
         {isLoading && (
           <div className="mt-16 flex justify-center">
             <Loader2 className="h-6 w-6 animate-spin text-[#8B8B9D]" />
