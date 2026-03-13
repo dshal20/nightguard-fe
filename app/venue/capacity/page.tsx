@@ -197,6 +197,7 @@ export default function CapacityPage() {
 
   return (
     <div className="min-h-screen bg-[#101018] px-4 py-6">
+      <div className="mx-auto w-full max-w-150">
       {/* Header */}
       <div className="mb-6 flex items-start justify-between">
         <div>
@@ -350,6 +351,7 @@ export default function CapacityPage() {
         <RotateCcw className="h-3 w-3" />
         Reset count
       </button>
+      </div>
     </div>
   );
 }
