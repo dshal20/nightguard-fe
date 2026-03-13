@@ -143,7 +143,7 @@ export default function IncidentsPage() {
           <Button
             size="sm"
             onClick={() => setSelected(row.original)}
-            className="h-8 gap-1.5 border border-[#2A2A34] bg-transparent px-3 text-[#8B8B9D] hover:bg-white/5 hover:text-white"
+            className="h-8 gap-1.5 border border-white/15 bg-white/10 px-3 text-white/70 hover:bg-white/15 hover:text-white"
           >
             <Eye className="h-3.5 w-3.5" />
             View
@@ -151,7 +151,7 @@ export default function IncidentsPage() {
           <Button
             size="sm"
             onClick={() => setEditing(row.original)}
-            className="h-8 gap-1.5 border border-[#2A2A34] bg-transparent px-3 text-[#8B8B9D] hover:bg-white/5 hover:text-white"
+            className="h-8 gap-1.5 border border-white/10 bg-white/5 px-3 text-white/50 hover:bg-white/10 hover:text-white/80"
           >
             <Pencil className="h-3.5 w-3.5" />
             Edit
