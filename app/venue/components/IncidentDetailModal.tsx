@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { IncidentResponse, IncidentSeverity } from "@/lib/api";
 import {
   Dialog,
@@ -7,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { User } from "lucide-react";
+import { User, ArrowUpRight } from "lucide-react";
 
 const severityStyle: Record<IncidentSeverity, string> = {
   LOW: "border-[#2B36CD] bg-[#2B36CD]/10 text-[#5B6AFF]",
@@ -82,6 +83,42 @@ export default function IncidentDetailModal({ incident, onClose }: Props) {
                     >
                       {kw}
                     </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {incident.offenders && incident.offenders.length > 0 && (
+              <div>
+                <p className="mb-1.5 text-[10px] font-bold uppercase text-[#8B8B9D]">
+                  Offenders ({incident.offenders.length})
+                </p>
+                <div className="space-y-2">
+                  {incident.offenders.map((o) => (
+                    <div
+                      key={o.id}
+                      className="flex items-center gap-3 rounded-lg border border-[#2A2A34] bg-[#0F0F19] p-3"
+                    >
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#26262F] text-xs font-bold text-[#8B8B9D]">
+                        {o.firstName[0]}{o.lastName[0]}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-[#DDDBDB]">
+                          {o.firstName} {o.lastName}
+                        </p>
+                        {o.physicalMarkers && (
+                          <p className="mt-0.5 text-[11px] text-[#6B6B7D]">{o.physicalMarkers}</p>
+                        )}
+                      </div>
+                      <Link
+                        href={`/venue/offenders?id=${o.id}`}
+                        onClick={onClose}
+                        className="flex shrink-0 items-center gap-1 rounded-md border border-[#2A2A34] bg-transparent px-2.5 py-1.5 text-[10px] font-medium text-[#8B8B9D] transition hover:bg-white/5 hover:text-white"
+                      >
+                        View Profile
+                        <ArrowUpRight className="h-3 w-3" />
+                      </Link>
+                    </div>
                   ))}
                 </div>
               </div>

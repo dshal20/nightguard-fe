@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/app/src/lib/firebase";
-import { getVenues, getIncidents, getCapacity, getHeadcounts } from "@/lib/api";
+import { getVenues, getIncidents, getCapacity, getHeadcounts, getOffenders } from "@/lib/api";
 
 export function useAuthToken() {
   const [token, setToken] = useState<string | null>(null);
@@ -56,6 +56,15 @@ export function useHeadcountsQuery(venueId: string | null | undefined) {
   return useQuery({
     queryKey: ["headcounts", venueId],
     queryFn: () => getHeadcounts(token!, venueId!),
+    enabled: !!token && !!venueId,
+  });
+}
+
+export function useOffendersQuery(venueId: string | null | undefined) {
+  const token = useAuthToken();
+  return useQuery({
+    queryKey: ["offenders", venueId],
+    queryFn: () => getOffenders(token!, venueId!),
     enabled: !!token && !!venueId,
   });
 }
