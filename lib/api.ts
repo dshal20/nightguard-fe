@@ -61,12 +61,15 @@ export interface CreateIncidentRequest {
   keywords: string[];
 }
 
+export type IncidentStatus = "ACTIVE" | "COMPLETED";
+
 export interface IncidentResponse {
   id: string;
   venueId: string;
   reporter: UserProfile;
   type: IncidentType;
   severity: IncidentSeverity;
+  status: IncidentStatus;
   description: string;
   keywords: string[];
   createdAt: string;
@@ -221,6 +224,31 @@ export async function addHeadcount(
     body: JSON.stringify({ headcount }),
   });
   if (!res.ok) throw new Error("Failed to log headcount");
+  return res.json();
+}
+
+export interface UpdateIncidentRequest {
+  type?: IncidentType;
+  severity?: IncidentSeverity;
+  status?: IncidentStatus;
+  description?: string;
+  keywords?: string[];
+}
+
+export async function updateIncident(
+  token: string,
+  id: string,
+  payload: UpdateIncidentRequest,
+): Promise<IncidentResponse> {
+  const res = await fetch(`${API_URL}/incidents/${id}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Failed to update incident");
   return res.json();
 }
 

@@ -56,11 +56,8 @@ export default function OffendersPage() {
   }, [search]);
 
   return (
-    <div className="mx-auto max-w-[1172px] px-8 py-8">
-      <h1 className="text-[28px] font-black leading-8 text-[#E2E2E2]">
-        Offenders
-      </h1>
-      <p className="mt-1 text-sm text-[#8B8B9D]">
+    <div className="mx-auto max-w-screen-2xl px-8 py-8">
+      <p className="text-sm text-[#8B8B9D]">
         Search and manage people who have been reported at your venue. Real data will appear when the backend is connected.
       </p>
 

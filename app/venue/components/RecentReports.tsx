@@ -1,26 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
-import { Eye, Loader2 } from "lucide-react";
-import type { IncidentResponse, IncidentSeverity } from "@/lib/api";
+import { Eye, Loader2, Pencil, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import type { IncidentResponse, IncidentSeverity, IncidentStatus } from "@/lib/api";
 import IncidentDetailModal from "./IncidentDetailModal";
+import EditIncidentModal from "./EditIncidentModal";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime);
+
+const statusStyle: Record<IncidentStatus, string> = {
+  ACTIVE:    "border-amber-400 bg-amber-400/10 text-amber-400",
+  COMPLETED: "border-green-400 bg-green-400/10 text-green-400",
+};
 
 const severityStyle: Record<IncidentSeverity, string> = {
-  LOW: "border-[#2B36CD] bg-[#2B36CD]/10 text-[#5B6AFF]",
+  LOW:    "border-[#2B36CD] bg-[#2B36CD]/10 text-[#5B6AFF]",
   MEDIUM: "border-[#DBA940] bg-[#DBA940]/10 text-[#DBA940]",
-  HIGH: "border-[#EB4869] bg-[#EB4869]/10 text-[#E84868]",
+  HIGH:   "border-[#EB4869] bg-[#EB4869]/10 text-[#E84868]",
 };
 
 function formatType(type: string) {
-  return type
-    .split("_")
-    .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
-    .join(" ");
+  return type.split("_").map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
 }
 
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+type SortKey = "createdAt" | "severity" | "status";
+type SortDir = "asc" | "desc";
+
+const SEVERITY_ORDER: Record<IncidentSeverity, number> = { LOW: 0, MEDIUM: 1, HIGH: 2 };
+const STATUS_ORDER: Record<IncidentStatus, number>     = { COMPLETED: 0, ACTIVE: 1 };
+
+function SortIcon({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey; sortDir: SortDir }) {
+  if (col !== sortKey) return <ChevronsUpDown className="ml-1 inline h-3 w-3 text-[#4A4A5A]" />;
+  return sortDir === "asc"
+    ? <ChevronUp   className="ml-1 inline h-3 w-3 text-[#8B8B9D]" />
+    : <ChevronDown className="ml-1 inline h-3 w-3 text-[#8B8B9D]" />;
 }
 
 interface RecentReportsProps {
@@ -29,16 +53,31 @@ interface RecentReportsProps {
 }
 
 export default function RecentReports({ incidents, loading }: RecentReportsProps) {
-  const recent = incidents.slice(0, 6);
   const [selected, setSelected] = useState<IncidentResponse | null>(null);
+  const [editing, setEditing] = useState<IncidentResponse | null>(null);
+  const [sortKey, setSortKey] = useState<SortKey>("createdAt");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  function handleSort(key: SortKey) {
+    if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortKey(key); setSortDir("desc"); }
+  }
+
+  const recent = useMemo(() => {
+    return [...incidents].sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === "createdAt") cmp = a.createdAt.localeCompare(b.createdAt);
+      else if (sortKey === "severity") cmp = SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity];
+      else if (sortKey === "status")   cmp = STATUS_ORDER[a.status]   - STATUS_ORDER[b.status];
+      return sortDir === "asc" ? cmp : -cmp;
+    }).slice(0, 6);
+  }, [incidents, sortKey, sortDir]);
 
   return (
     <>
-      <div className="rounded-[21px] border border-[#2A2A34] bg-[#11111B] p-6">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-black leading-8 text-[#E2E2E2]">
-            Recent Reports
-          </h2>
+      <div className="rounded-xl border border-[#2A2A34] bg-[#11111B]">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+          <h2 className="text-lg font-black leading-8 text-[#E2E2E2]">Recent Reports</h2>
           <Link
             href="/venue/incidents"
             className="rounded-lg border border-[#2A2A34] bg-[#26262F]/48 px-4 py-2 text-xs font-bold text-white"
@@ -58,55 +97,67 @@ export default function RecentReports({ incidents, loading }: RecentReportsProps
         )}
 
         {!loading && recent.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[500px]">
-              <thead>
-                <tr className="text-left text-[8px] font-bold uppercase leading-[18px] text-[#8B8B9D]">
-                  <th className="pb-3 pr-4">TIME</th>
-                  <th className="pb-3 pr-4">TITLE / DESCRIPTION</th>
-                  <th className="pb-3 pr-4 text-right">SEVERITY</th>
-                  <th className="pb-3" />
-                </tr>
-              </thead>
-              <tbody>
-                {recent.map((inc) => (
-                  <tr
-                    key={inc.id}
-                    className="border-b border-[#2A2A34] transition hover:bg-white/[0.02]"
-                  >
-                    <td className="py-4 pr-4 text-xs font-bold text-white whitespace-nowrap">
-                      {formatTime(inc.createdAt)}
-                    </td>
-                    <td className="py-4 pr-4">
-                      <p className="text-xs font-bold text-white">{formatType(inc.type)}</p>
-                      <p className="text-xs font-medium text-[#8B8B9D] max-w-[300px] truncate">
-                        {inc.description}
-                      </p>
-                    </td>
-                    <td className="py-4 pr-4 text-right">
-                      <span
-                        className={`rounded-[7px] border px-2 py-0.5 text-[10px] font-bold leading-[18px] ${severityStyle[inc.severity]}`}
-                      >
-                        {inc.severity}
-                      </span>
-                    </td>
-                    <td className="py-4">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-[#2A2A34] hover:bg-transparent">
+                <TableHead className="cursor-pointer select-none text-[10px] font-bold uppercase text-[#8B8B9D] hover:text-[#DDDBDB] transition-colors" onClick={() => handleSort("createdAt")}>
+                  Time <SortIcon col="createdAt" sortKey={sortKey} sortDir={sortDir} />
+                </TableHead>
+                <TableHead className="text-[10px] font-bold uppercase text-[#8B8B9D]">Type / Description</TableHead>
+                <TableHead className="cursor-pointer select-none text-[10px] font-bold uppercase text-[#8B8B9D] hover:text-[#DDDBDB] transition-colors" onClick={() => handleSort("severity")}>
+                  Severity <SortIcon col="severity" sortKey={sortKey} sortDir={sortDir} />
+                </TableHead>
+                <TableHead className="w-28 cursor-pointer select-none text-[10px] font-bold uppercase text-[#8B8B9D] hover:text-[#DDDBDB] transition-colors" onClick={() => handleSort("status")}>
+                  Status <SortIcon col="status" sortKey={sortKey} sortDir={sortDir} />
+                </TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {recent.map((inc) => (
+                <TableRow key={inc.id} className="border-[#2A2A34] hover:bg-white/[0.02]">
+                  <TableCell className="py-2 text-xs font-bold text-white whitespace-nowrap">
+                    {dayjs(inc.createdAt).fromNow()}
+                  </TableCell>
+                  <TableCell className="py-2">
+                    <p className="text-xs font-bold text-white">{formatType(inc.type)}</p>
+                    <p className="max-w-[300px] truncate text-xs text-[#8B8B9D]">{inc.description}</p>
+                  </TableCell>
+                  <TableCell className="py-2">
+                    <span className={`rounded-[7px] border px-2 py-0.5 text-[10px] font-bold leading-[18px] ${severityStyle[inc.severity]}`}>
+                      {inc.severity}
+                    </span>
+                  </TableCell>
+                  <TableCell className="py-2 w-28">
+                    <span className={`rounded-[7px] border px-2 py-0.5 text-[10px] font-bold leading-[18px] ${statusStyle[inc.status]}`}>
+                      {inc.status}
+                    </span>
+                  </TableCell>
+                  <TableCell className="py-2">
+                    <div className="flex items-center gap-1">
                       <button
                         onClick={() => setSelected(inc)}
                         className="flex items-center justify-center rounded-md p-1.5 text-[#8B8B9D] transition hover:bg-white/[0.06] hover:text-white"
                       >
                         <Eye className="h-3.5 w-3.5" />
                       </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      <button
+                        onClick={() => setEditing(inc)}
+                        className="flex items-center justify-center rounded-md p-1.5 text-[#8B8B9D] transition hover:bg-white/[0.06] hover:text-white"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </div>
 
       <IncidentDetailModal incident={selected} onClose={() => setSelected(null)} />
+      <EditIncidentModal incident={editing} onClose={() => setEditing(null)} />
     </>
   );
 }
