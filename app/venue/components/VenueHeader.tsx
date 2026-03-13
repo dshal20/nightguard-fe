@@ -20,9 +20,9 @@ export default function VenueHeader({ venueId }: VenueHeaderProps) {
           <button
             type="button"
             onClick={() => setReportOpen(true)}
-            className="flex h-9 items-center gap-2 rounded-lg border border-[#2B36CD] bg-[#2B36CD]/20 px-4 text-xs font-bold text-white"
+            className="flex h-9 items-center gap-2 rounded-lg border border-green-400/50 bg-green-400/10 px-4 text-xs font-bold text-green-400 transition hover:border-green-400 hover:bg-green-400/15"
           >
-            <span className="text-[#75FB94]">+</span>
+            <span>+</span>
             New Report
           </button>
           <button
