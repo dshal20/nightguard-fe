@@ -15,6 +15,7 @@ import VenueHeader from "./components/VenueHeader";
 import StatCard from "./components/StatCard";
 import RecentReports from "./components/RecentReports";
 import LiveActivity from "./components/LiveActivity";
+import OffenderSearch from "./components/OffenderSearch";
 import { useVenueContext } from "./context/VenueContext";
 
 function JoinVenuePrompt() {
@@ -118,6 +119,9 @@ export default function VenueDashboard() {
       <p className="mt-2 font-mono text-xs text-white/[0.28]">
         3h 20m 5s elapsed
       </p>
+      <div className="mt-5">
+        <OffenderSearch />
+      </div>
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="ACTIVE INCIDENTS"
