@@ -6,6 +6,7 @@ import { Eye, Loader2, Pencil, ChevronUp, ChevronDown, ChevronsUpDown } from "lu
 import type { IncidentResponse, IncidentSeverity, IncidentStatus } from "@/lib/api";
 import IncidentDetailModal from "./IncidentDetailModal";
 import EditIncidentModal from "./EditIncidentModal";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -79,12 +80,9 @@ export default function RecentReports({ incidents, loading }: RecentReportsProps
       <div className="rounded-xl border border-white/[0.07] bg-[#11111B]">
         <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-white/[0.07]">
           <h2 className="text-lg font-black leading-8 text-[#E2E2E2]">Recent Reports</h2>
-          <Link
-            href="/venue/incidents"
-            className="rounded-lg border border-white/[0.07] bg-[#26262F]/48 px-4 py-2 text-xs font-bold text-white"
-          >
-            View All Reports
-          </Link>
+          <Button asChild size="sm" className="h-8 gap-1.5 border border-white/15 bg-white/10 px-3 text-white/70 hover:bg-white/15 hover:text-white">
+            <Link href="/venue/incidents">View All Reports</Link>
+          </Button>
         </div>
 
         {loading && (
@@ -141,19 +139,15 @@ export default function RecentReports({ incidents, loading }: RecentReportsProps
                     {dayjs(inc.updatedAt).fromNow()}
                   </TableCell>
                   <TableCell className="py-2">
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => setSelected(inc)}
-                        className="flex items-center justify-center rounded-md p-1.5 text-[#8B8B9D] transition hover:bg-white/[0.06] hover:text-white"
-                      >
+                    <div className="flex items-center gap-1.5">
+                      <Button size="sm" onClick={() => setSelected(inc)} className="h-8 gap-1.5 border border-white/15 bg-white/10 px-3 text-white/70 hover:bg-white/15 hover:text-white">
                         <Eye className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => setEditing(inc)}
-                        className="flex items-center justify-center rounded-md p-1.5 text-[#8B8B9D] transition hover:bg-white/[0.06] hover:text-white"
-                      >
+                        View
+                      </Button>
+                      <Button size="sm" onClick={() => setEditing(inc)} className="h-8 gap-1.5 border border-white/10 bg-white/5 px-3 text-white/50 hover:bg-white/10 hover:text-white/80">
                         <Pencil className="h-3.5 w-3.5" />
-                      </button>
+                        Edit
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>

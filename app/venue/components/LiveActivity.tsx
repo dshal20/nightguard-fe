@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 const typeConfig: Record<
   "warning" | "medical" | "trespass",
   { dot: string; pulse: boolean }
@@ -55,12 +57,9 @@ export default function LiveActivity() {
           <h2 className="text-base font-bold text-[#E2E2E2]">Live Activity</h2>
           <p className="mt-0.5 text-[10px] text-[#44445A]">Last updated 30s ago</p>
         </div>
-        <button
-          type="button"
-          className="border border-white/[0.08] bg-white/[0.03] px-4 py-1.5 text-xs font-medium text-[#8B8B9D] transition-colors hover:bg-white/[0.06] hover:text-white"
-        >
+        <Button type="button" size="sm" className="h-8 gap-1.5 border border-white/15 bg-white/10 px-3 text-white/70 hover:bg-white/15 hover:text-white">
           Filter
-        </button>
+        </Button>
       </div>
 
       <ul className="divide-y divide-white/[0.04]">
