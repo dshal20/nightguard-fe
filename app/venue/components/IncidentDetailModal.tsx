@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { auth } from "@/app/src/lib/firebase";
 import { getOffender } from "@/lib/api";
-import type { IncidentResponse, IncidentSeverity, OffenderResponse } from "@/lib/api";
+import type { IncidentResponse, OffenderResponse } from "@/lib/api";
 import {
   Dialog,
   DialogContent,
@@ -13,12 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { User, ArrowUpRight } from "lucide-react";
-
-const severityStyle: Record<IncidentSeverity, string> = {
-  LOW: "border-[#2B36CD] bg-[#2B36CD]/10 text-[#5B6AFF]",
-  MEDIUM: "border-[#DBA940] bg-[#DBA940]/10 text-[#DBA940]",
-  HIGH: "border-[#EB4869] bg-[#EB4869]/10 text-[#E84868]",
-};
+import { ColorTag, severityVariant } from "@/components/ui/color-tag";
 
 function formatType(type: string) {
   return type.split("_").map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
@@ -108,9 +103,7 @@ export default function IncidentDetailModal({ incident, onClose }: Props) {
               {incident ? formatType(incident.type) : ""}
             </DialogTitle>
             {incident && (
-              <span className={`rounded-[7px] border px-2 py-0.5 text-[10px] font-bold leading-[18px] ${severityStyle[incident.severity]}`}>
-                {incident.severity}
-              </span>
+              <ColorTag variant={severityVariant[incident.severity]}>{incident.severity}</ColorTag>
             )}
           </div>
           {incident && (

@@ -7,6 +7,7 @@ import type { IncidentResponse, IncidentSeverity, IncidentStatus } from "@/lib/a
 import IncidentDetailModal from "./IncidentDetailModal";
 import EditIncidentModal from "./EditIncidentModal";
 import { Button } from "@/components/ui/button";
+import { ColorTag, severityVariant, statusVariant } from "@/components/ui/color-tag";
 import {
   Table,
   TableBody,
@@ -19,17 +20,6 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
 dayjs.extend(relativeTime);
-
-const statusStyle: Record<IncidentStatus, string> = {
-  ACTIVE:    "border-amber-400 bg-amber-400/10 text-amber-400",
-  COMPLETED: "border-green-400 bg-green-400/10 text-green-400",
-};
-
-const severityStyle: Record<IncidentSeverity, string> = {
-  LOW:    "border-[#2B36CD] bg-[#2B36CD]/10 text-[#5B6AFF]",
-  MEDIUM: "border-[#DBA940] bg-[#DBA940]/10 text-[#DBA940]",
-  HIGH:   "border-[#EB4869] bg-[#EB4869]/10 text-[#E84868]",
-};
 
 function formatType(type: string) {
   return type.split("_").map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
@@ -80,9 +70,9 @@ export default function RecentReports({ incidents, loading }: RecentReportsProps
       <div className="rounded-xl border border-white/[0.07] bg-[#11111B]">
         <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-white/[0.07]">
           <h2 className="text-lg font-black leading-8 text-[#E2E2E2]">Recent Reports</h2>
-          <Button asChild size="sm" className="h-8 gap-1.5 border border-white/15 bg-white/10 px-3 text-white/70 hover:bg-white/15 hover:text-white">
-            <Link href="/venue/incidents">View All Reports</Link>
-          </Button>
+          <Link href="/venue/incidents" className="text-sm font-medium text-[#8B8B9D] hover:text-white">
+            View All Reports
+          </Link>
         </div>
 
         {loading && (
@@ -123,14 +113,10 @@ export default function RecentReports({ incidents, loading }: RecentReportsProps
                     <p className="max-w-[300px] truncate text-xs text-[#8B8B9D]">{inc.description}</p>
                   </TableCell>
                   <TableCell className="py-2">
-                    <span className={`rounded-[7px] border px-2 py-0.5 text-[10px] font-medium leading-[18px] ${severityStyle[inc.severity]}`}>
-                      {inc.severity}
-                    </span>
+                    <ColorTag variant={severityVariant[inc.severity]}>{inc.severity}</ColorTag>
                   </TableCell>
                   <TableCell className="py-2 w-28">
-                    <span className={`rounded-[7px] border px-2 py-0.5 text-[10px] font-medium leading-[18px] ${statusStyle[inc.status]}`}>
-                      {inc.status}
-                    </span>
+                    <ColorTag variant={statusVariant[inc.status]}>{inc.status}</ColorTag>
                   </TableCell>
                   <TableCell className="py-2 text-xs font-normal text-[#8B8B9D] whitespace-nowrap">
                     {dayjs(inc.createdAt).fromNow()}
@@ -139,14 +125,12 @@ export default function RecentReports({ incidents, loading }: RecentReportsProps
                     {dayjs(inc.updatedAt).fromNow()}
                   </TableCell>
                   <TableCell className="py-2">
-                    <div className="flex items-center gap-1.5">
-                      <Button size="sm" onClick={() => setSelected(inc)} className="h-8 gap-1.5 border border-white/15 bg-white/10 px-3 text-white/70 hover:bg-white/15 hover:text-white">
+                    <div className="flex items-center gap-2.5">
+                      <Button size="icon-sm" onClick={() => setSelected(inc)} className="border border-primary bg-primary/50 text-white hover:bg-primary/70">
                         <Eye className="h-3.5 w-3.5" />
-                        View
                       </Button>
-                      <Button size="sm" onClick={() => setEditing(inc)} className="h-8 gap-1.5 border border-white/10 bg-white/5 px-3 text-white/50 hover:bg-white/10 hover:text-white/80">
+                      <Button size="icon-sm" onClick={() => setEditing(inc)} className="border border-primary bg-transparent text-primary hover:bg-primary/10">
                         <Pencil className="h-3.5 w-3.5" />
-                        Edit
                       </Button>
                     </div>
                   </TableCell>

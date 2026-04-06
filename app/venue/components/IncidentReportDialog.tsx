@@ -228,7 +228,7 @@ export default function IncidentReportDialog({
                     key={level}
                     type="button"
                     onClick={() => setSeverity(level)}
-                    className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition ${
+                    className={`rounded border px-3 py-2 text-xs font-bold transition ${
                       active
                         ? `${colors.bg} ${colors.border} ${colors.text}`
                         : "border-[#2A2A34] bg-[#1a1a28] text-[#8B8B9D] hover:border-[#3A3A44]"
