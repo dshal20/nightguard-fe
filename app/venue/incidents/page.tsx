@@ -89,7 +89,7 @@ export default function IncidentsPage() {
       header: "Description",
       enableSorting: false,
       cell: ({ getValue }) => (
-        <span className="max-w-[260px] truncate text-xs text-[#8B8B9D]">
+        <span className="max-w-65 truncate text-xs text-[#8B8B9D]">
           {getValue<string>()}
         </span>
       ),
@@ -148,6 +148,7 @@ export default function IncidentsPage() {
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: incidents,
     columns,
@@ -193,7 +194,7 @@ export default function IncidentsPage() {
               </TableHeader>
               <TableBody>
                 {table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} className="border-[#2A2A34] hover:bg-white/[0.02]">
+                  <TableRow key={row.id} className="border-[#2A2A34] hover:bg-white/2">
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id} className="py-2">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
