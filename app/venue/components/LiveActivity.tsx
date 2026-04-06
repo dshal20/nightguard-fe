@@ -1,11 +1,12 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
-
-const typeStyles: Record<"warning" | "medical" | "trespass", string> = {
-  warning:  "border-[#6B2233]",
-  medical:  "border-[#1E2469]",
-  trespass: "border-[#6B5320]",
+const typeConfig: Record<
+  "warning" | "medical" | "trespass",
+  { dot: string; pulse: boolean }
+> = {
+  warning:  { dot: "#E84868", pulse: true },
+  medical:  { dot: "#4B7BF5", pulse: true },
+  trespass: { dot: "#DBA940", pulse: false },
 };
 
 const activities: {
@@ -48,45 +49,48 @@ const activities: {
 
 export default function LiveActivity() {
   return (
-    <div className="rounded-[21px] border border-[#2A2A34] bg-[#11111B]">
-      <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-[#2A2A34]">
+    <div className="rounded-xl border border-white/[0.07] bg-[#11111B]">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
         <div>
-          <h2 className="text-lg font-black leading-8 text-[#E2E2E2]">
-            Live Activity
-          </h2>
-          <p className="text-[8px] font-bold text-[#8B8B9D]">
-            Last updated 30s ago
-          </p>
+          <h2 className="text-base font-bold text-[#E2E2E2]">Live Activity</h2>
+          <p className="mt-0.5 text-[10px] text-[#44445A]">Last updated 30s ago</p>
         </div>
         <button
           type="button"
-          className="rounded-lg border border-[#2A2A34] bg-[#26262F]/48 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-white/[0.06]"
+          className="border border-white/[0.08] bg-white/[0.03] px-4 py-1.5 text-xs font-medium text-[#8B8B9D] transition-colors hover:bg-white/[0.06] hover:text-white"
         >
           Filter
         </button>
       </div>
 
-      <ul className="space-y-2 p-4">
-        {activities.map((a, i) => (
-          <Card
-            key={i}
-            className={`gap-0 py-0 shadow-none transition-colors hover:bg-white/[0.02] bg-[#16161F] border ${typeStyles[a.type]}`}
-          >
-            <CardContent className="flex items-center gap-3 px-3 py-3">
+      <ul className="divide-y divide-white/[0.04]">
+        {activities.map((a, i) => {
+          const config = typeConfig[a.type];
+          return (
+            <li
+              key={i}
+              className="flex items-start gap-3.5 px-5 py-3.5 transition-colors hover:bg-white/[0.02]"
+            >
+              <div className="mt-1 shrink-0">
+                <span
+                  className={`block h-1.75 w-1.75 rounded-full ${config.pulse ? "animate-pulse" : ""}`}
+                  style={{ background: config.dot }}
+                />
+              </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-bold text-white">{a.title}</p>
-                  <span className="shrink-0 font-mono text-[10px] text-[#4A4A5A]">
+                  <p className="text-xs font-semibold text-white">{a.title}</p>
+                  <span className="shrink-0 text-[10px] tabular-nums text-[#44445A]">
                     {a.time}
                   </span>
                 </div>
-                <p className="mt-0.5 truncate text-[11px] leading-[1.4] text-[#6B6B7D]">
+                <p className="mt-0.5 truncate text-[11px] leading-relaxed text-[#555568]">
                   {a.description}
                 </p>
               </div>
-            </CardContent>
-          </Card>
-        ))}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

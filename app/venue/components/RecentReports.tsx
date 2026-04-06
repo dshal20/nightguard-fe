@@ -76,12 +76,12 @@ export default function RecentReports({ incidents, loading }: RecentReportsProps
 
   return (
     <>
-      <div className="rounded-xl border border-[#2A2A34] bg-[#11111B]">
-        <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-[#2A2A34]">
+      <div className="rounded-xl border border-white/[0.07] bg-[#11111B]">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-white/[0.07]">
           <h2 className="text-lg font-black leading-8 text-[#E2E2E2]">Recent Reports</h2>
           <Link
             href="/venue/incidents"
-            className="rounded-lg border border-[#2A2A34] bg-[#26262F]/48 px-4 py-2 text-xs font-bold text-white"
+            className="rounded-lg border border-white/[0.07] bg-[#26262F]/48 px-4 py-2 text-xs font-bold text-white"
           >
             View All Reports
           </Link>
@@ -100,7 +100,7 @@ export default function RecentReports({ incidents, loading }: RecentReportsProps
         {!loading && recent.length > 0 && (
           <Table>
             <TableHeader>
-              <TableRow className="border-[#2A2A34] hover:bg-transparent">
+              <TableRow className="border-white/[0.07] hover:bg-transparent">
                 <TableHead className="text-[10px] font-bold uppercase text-[#8B8B9D]">Type / Description</TableHead>
                 <TableHead className="cursor-pointer select-none text-[10px] font-bold uppercase text-[#8B8B9D] hover:text-[#DDDBDB] transition-colors" onClick={() => handleSort("severity")}>
                   Severity <SortIcon col="severity" sortKey={sortKey} sortDir={sortDir} />
@@ -119,7 +119,7 @@ export default function RecentReports({ incidents, loading }: RecentReportsProps
             </TableHeader>
             <TableBody>
               {recent.map((inc) => (
-                <TableRow key={inc.id} className="border-[#2A2A34] hover:bg-white/[0.02]">
+                <TableRow key={inc.id} className="border-white/[0.07] hover:bg-white/[0.02]">
                   <TableCell className="py-2">
                     <p className="text-xs font-medium text-white">{formatType(inc.type)}</p>
                     <p className="max-w-[300px] truncate text-xs text-[#8B8B9D]">{inc.description}</p>

@@ -30,7 +30,7 @@ export default function StatCard({
   return (
     <div
       className="flex flex-col overflow-hidden rounded-xl border border-white/[0.07] px-5 pt-5 pb-4"
-      style={{ background: `radial-gradient(ellipse 80% 60% at 100% 0%, ${style.tint}, transparent 70%), #0D0D16` }}
+      style={{ background: `radial-gradient(ellipse 80% 60% at 100% 0%, ${style.tint}, transparent 70%), #11111B` }}
     >
       {/* Label row */}
       <div className="flex items-center gap-2">
