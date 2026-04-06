@@ -39,7 +39,7 @@ const network: NavItem[] = [
   { label: "Nearby Venues",  href: "#", icon: <MapPin    className="h-3.75 w-3.75" />, color: "#2B36CD" },
 ];
 const settings: NavItem[] = [
-  { label: "Preferences", href: "#",              icon: <Settings className="h-3.75 w-3.75" />, color: "#8B8B9D" },
+  { label: "Venue Preferences", href: "/venue/preferences", icon: <Settings className="h-3.75 w-3.75" />, color: "#8B8B9D" },
   { label: "Account",     href: "/venue/account", icon: <User     className="h-3.75 w-3.75" />, color: "#8B8B9D" },
 ];
 
