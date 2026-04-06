@@ -30,7 +30,7 @@ export default function StatCard({
   return (
     <div
       className="flex flex-col overflow-hidden rounded-xl border border-white/[0.07] px-5 pt-5 pb-4"
-      style={{ background: `radial-gradient(ellipse 80% 60% at 100% 0%, ${style.tint}, transparent 70%), #11111B` }}
+      style={{ background: `radial-gradient(ellipse 100% 100% at 100% 0%, ${style.tint}, transparent 100%), #11111B` }}
     >
       {/* Label row */}
       <div className="flex items-center gap-2">
@@ -38,7 +38,7 @@ export default function StatCard({
           className={`h-1.75 w-1.75 shrink-0 rounded-full ${isLive ? "animate-pulse" : ""}`}
           style={{ background: style.dot }}
         />
-        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#555568]">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/90">
           {title}
         </p>
       </div>
@@ -54,10 +54,10 @@ export default function StatCard({
       {/* Context */}
       <div className="flex-1 space-y-1">
         {subtitle && (
-          <p className="text-xs font-medium text-[#6B6B80]">{subtitle}</p>
+          <p className="text-xs font-medium text-white">{subtitle}</p>
         )}
         {meta && (
-          <p className="text-[10px] leading-relaxed text-[#44445A]">{meta}</p>
+          <p className="text-[10px] leading-relaxed text-white/60">{meta}</p>
         )}
       </div>
 
