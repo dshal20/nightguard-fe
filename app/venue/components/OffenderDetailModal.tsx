@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Ban, ShieldX } from "lucide-react";
-import type { OffenderResponse, IncidentSeverity } from "@/lib/api";
+import type { OffenderResponse } from "@/lib/api";
+import { ColorTag, severityVariant } from "@/components/ui/color-tag";
 import {
   Dialog,
   DialogContent,
@@ -24,11 +25,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useOffenderIncidentsQuery } from "@/lib/queries";
 
-const severityStyle: Record<IncidentSeverity, string> = {
-  LOW:    "border-[#2B36CD] bg-[#2B36CD]/10 text-[#5B6AFF]",
-  MEDIUM: "border-[#DBA940] bg-[#DBA940]/10 text-[#DBA940]",
-  HIGH:   "border-[#EB4869] bg-[#EB4869]/10 text-[#E84868]",
-};
 
 function formatType(type: string) {
   return type.split("_").map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
@@ -213,9 +209,7 @@ export default function OffenderDetailModal({ offender, onClose }: Props) {
                         <p className="min-w-0 flex-1 truncate text-xs font-medium text-[#DDDBDB]">
                           {formatType(inc.type)}
                         </p>
-                        <span className={`shrink-0 rounded-[6px] border px-2 py-0.5 text-[10px] font-medium leading-[18px] ${severityStyle[inc.severity]}`}>
-                          {inc.severity}
-                        </span>
+                        <ColorTag variant={severityVariant[inc.severity]}>{inc.severity}</ColorTag>
                         <span className="shrink-0 text-[10px] text-[#4A4A5A]">
                           {formatDate(inc.createdAt)}
                         </span>

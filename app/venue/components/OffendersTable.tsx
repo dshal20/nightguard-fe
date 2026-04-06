@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { ColorTag } from "@/components/ui/color-tag";
 import { useVenueContext } from "../context/VenueContext";
 import { useOffendersQuery } from "@/lib/queries";
 import type { OffenderResponse } from "@/lib/api";
@@ -105,7 +106,7 @@ function OffendersTableInner() {
       cell: ({ getValue }) => {
         const v = getValue() as string | undefined;
         return v ? (
-          <span className="rounded-md border border-[#2A2A34] bg-[#1a1a28] px-2 py-0.5 text-[11px] text-[#DDDBDB]">{v}</span>
+          <ColorTag>{v}</ColorTag>
         ) : (
           <span className="text-[#4A4A5A]">—</span>
         );
@@ -115,7 +116,7 @@ function OffendersTableInner() {
       accessorKey: "notes",
       header: "Notes",
       cell: ({ getValue }) => (
-        <span className="block max-w-[220px] truncate text-xs text-[#8B8B9D]">{(getValue() as string) || "—"}</span>
+        <span className="block max-w-55 truncate text-xs text-[#8B8B9D]">{(getValue() as string) || "—"}</span>
       ),
     },
     {
@@ -150,18 +151,17 @@ function OffendersTableInner() {
       header: "",
       cell: ({ row }) => (
         <Button
-          variant="ghost"
-          size="sm"
+          size="icon-sm"
           onClick={() => setSelected(row.original)}
-          className="h-8 gap-1.5 border border-[#2A2A34] bg-transparent px-3 text-[#8B8B9D] hover:bg-white/5 hover:text-white"
+          className="border border-primary bg-primary/50 text-white hover:bg-primary/70"
         >
           <Eye className="h-3.5 w-3.5" />
-          View
         </Button>
       ),
     },
   ], []);
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: offenders,
     columns,
@@ -216,7 +216,7 @@ function OffendersTableInner() {
               </TableRow>
             ) : (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="border-[#2A2A34] hover:bg-white/[0.02]">
+                <TableRow key={row.id} className="border-[#2A2A34] hover:bg-white/2">
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-3 text-xs">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}

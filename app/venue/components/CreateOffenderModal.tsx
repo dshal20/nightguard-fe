@@ -163,7 +163,7 @@ export default function CreateOffenderModal({ open, venueId, onClose, onCreated 
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#2A2A34] bg-[#0F0F19] py-6 text-[#4A4A5A] transition hover:border-[#3B3B5A] hover:bg-white/[0.02] hover:text-[#8B8B9D]"
+              className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#2A2A34] bg-[#0F0F19] py-6 text-[#4A4A5A] transition hover:border-[#3B3B5A] hover:bg-white/2 hover:text-[#8B8B9D]"
             >
               <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#2A2A34] bg-[#1a1a28]">
                 <ImagePlus className="h-5 w-5" />

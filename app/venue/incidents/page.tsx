@@ -13,6 +13,7 @@ import {
 import { type IncidentSeverity, type IncidentStatus, type IncidentResponse } from "@/lib/api";
 import { Eye, Loader2, Pencil, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ColorTag, severityVariant, statusVariant } from "@/components/ui/color-tag";
 import IncidentDetailModal from "../components/IncidentDetailModal";
 import EditIncidentModal from "../components/EditIncidentModal";
 import { useVenueContext } from "../context/VenueContext";
@@ -25,16 +26,6 @@ import {
 
 dayjs.extend(relativeTime);
 
-const statusStyle: Record<IncidentStatus, string> = {
-  ACTIVE:    "border-amber-400 bg-amber-400/10 text-amber-400",
-  COMPLETED: "border-green-400 bg-green-400/10 text-green-400",
-};
-
-const severityStyle: Record<IncidentSeverity, string> = {
-  LOW:    "border-[#2B36CD] bg-[#2B36CD]/10 text-[#5B6AFF]",
-  MEDIUM: "border-[#DBA940] bg-[#DBA940]/10 text-[#DBA940]",
-  HIGH:   "border-[#EB4869] bg-[#EB4869]/10 text-[#E84868]",
-};
 
 const SEVERITY_ORDER: Record<IncidentSeverity, number> = { LOW: 0, MEDIUM: 1, HIGH: 2 };
 const STATUS_ORDER: Record<IncidentStatus, number> = { COMPLETED: 0, ACTIVE: 1 };
@@ -98,7 +89,7 @@ export default function IncidentsPage() {
       header: "Description",
       enableSorting: false,
       cell: ({ getValue }) => (
-        <span className="max-w-[260px] truncate text-xs text-[#8B8B9D]">
+        <span className="max-w-65 truncate text-xs text-[#8B8B9D]">
           {getValue<string>()}
         </span>
       ),
@@ -110,9 +101,7 @@ export default function IncidentsPage() {
       cell: ({ getValue }) => (
         <div className="flex flex-wrap gap-1">
           {getValue<string[]>().map((kw, i) => (
-            <span key={i} className="rounded-md border border-[#2A2A34] bg-[#1a1a28] px-1.5 py-0.5 text-[10px] text-[#DDDBDB]">
-              {kw}
-            </span>
+            <ColorTag key={i}>{kw}</ColorTag>
           ))}
         </div>
       ),
@@ -123,7 +112,7 @@ export default function IncidentsPage() {
       sortingFn: severitySortFn,
       cell: ({ getValue }) => {
         const v = getValue<IncidentSeverity>();
-        return <span className={`rounded-[7px] border px-2 py-0.5 text-[10px] font-bold leading-[18px] ${severityStyle[v]}`}>{v}</span>;
+        return <ColorTag variant={severityVariant[v]}>{v}</ColorTag>;
       },
     },
     {
@@ -132,35 +121,34 @@ export default function IncidentsPage() {
       sortingFn: statusSortFn,
       cell: ({ getValue }) => {
         const v = getValue<IncidentStatus>();
-        return <span className={`rounded-[7px] border px-2 py-0.5 text-[10px] font-bold leading-[18px] ${statusStyle[v]}`}>{v}</span>;
+        return <ColorTag variant={statusVariant[v]}>{v}</ColorTag>;
       },
     },
     {
       id: "actions",
       enableSorting: false,
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <Button
-            size="sm"
+            size="icon-sm"
             onClick={() => setSelected(row.original)}
-            className="h-8 gap-1.5 border border-white/15 bg-white/10 px-3 text-white/70 hover:bg-white/15 hover:text-white"
+            className="border border-primary bg-primary/50 text-white hover:bg-primary/70 ml-auto"
           >
             <Eye className="h-3.5 w-3.5" />
-            View
           </Button>
           <Button
-            size="sm"
+            size="icon-sm"
             onClick={() => setEditing(row.original)}
-            className="h-8 gap-1.5 border border-white/10 bg-white/5 px-3 text-white/50 hover:bg-white/10 hover:text-white/80"
+            className="border border-primary bg-transparent text-primary hover:bg-primary/10"
           >
             <Pencil className="h-3.5 w-3.5" />
-            Edit
           </Button>
         </div>
       ),
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: incidents,
     columns,
@@ -206,7 +194,7 @@ export default function IncidentsPage() {
               </TableHeader>
               <TableBody>
                 {table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} className="border-[#2A2A34] hover:bg-white/[0.02]">
+                  <TableRow key={row.id} className="border-[#2A2A34] hover:bg-white/2">
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id} className="py-2">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
