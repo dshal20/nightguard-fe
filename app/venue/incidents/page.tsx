@@ -132,7 +132,7 @@ export default function IncidentsPage() {
           <Button
             size="icon-sm"
             onClick={() => setSelected(row.original)}
-            className="border border-primary bg-primary/50 text-white hover:bg-primary/70"
+            className="border border-primary bg-primary/50 text-white hover:bg-primary/70 ml-auto"
           >
             <Eye className="h-3.5 w-3.5" />
           </Button>

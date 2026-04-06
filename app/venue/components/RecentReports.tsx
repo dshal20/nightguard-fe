@@ -125,8 +125,8 @@ export default function RecentReports({ incidents, loading }: RecentReportsProps
                     {dayjs(inc.updatedAt).fromNow()}
                   </TableCell>
                   <TableCell className="py-2">
-                    <div className="flex items-center gap-2.5">
-                      <Button size="icon-sm" onClick={() => setSelected(inc)} className="border border-primary bg-primary/50 text-white hover:bg-primary/70">
+                    <div className="flex items-center gap-2.5 justify-end">
+                      <Button size="icon-sm" onClick={() => setSelected(inc)} className="border border-primary bg-primary/50 text-white hover:bg-primary/70 ml-auto">
                         <Eye className="h-3.5 w-3.5" />
                       </Button>
                       <Button size="icon-sm" onClick={() => setEditing(inc)} className="border border-primary bg-transparent text-primary hover:bg-primary/10">

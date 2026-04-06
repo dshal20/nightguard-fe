@@ -4,10 +4,10 @@ import type { IncidentSeverity, IncidentStatus } from "@/lib/api";
 export type ColorTagVariant = "blue" | "amber" | "red" | "green" | "default";
 
 const variants: Record<ColorTagVariant, string> = {
-  blue:    "border-[#2B36CD] bg-[#2B36CD]/10 text-[#5B6AFF]",
-  amber:   "border-amber-400/50 bg-amber-400/10 text-amber-400",
-  red:     "border-[#EB4869]/50 bg-[#EB4869]/10 text-[#E84868]",
-  green:   "border-green-400/50 bg-green-400/10 text-green-400",
+  blue:    "border-[#2B36CD] bg-[#2B36CD]/5 text-[#5B6AFF]",
+  amber:   "border-amber-400/30 bg-amber-400/5 text-amber-400",
+  red:     "border-[#EB4869]/30 bg-[#EB4869]/5 text-[#E84868]",
+  green:   "border-green-400/30 bg-green-400/5 text-green-400",
   default: "border-white/10 bg-white/5 text-[#8B8B9D]",
 };
 
