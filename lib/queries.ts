@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/app/src/lib/firebase";
-import { getVenues, getIncidents, getCapacity, getHeadcounts, getOffenders, getOffenderIncidents } from "@/lib/api";
+import { getVenues, getIncidents, getCapacity, getHeadcounts, getOffenders, getOffenderIncidents, getNearbyVenues, getSubscriptions } from "@/lib/api";
 
 export function useAuthToken() {
   const [token, setToken] = useState<string | null>(null);
@@ -74,6 +74,24 @@ export function useOffendersQuery(venueId: string | null | undefined) {
   return useQuery({
     queryKey: ["offenders", venueId],
     queryFn: () => getOffenders(token!, venueId!),
+    enabled: !!token && !!venueId,
+  });
+}
+
+export function useNearbyVenuesQuery(venueId: string | null | undefined, city: string | null | undefined, state: string | null | undefined, zip?: string) {
+  const token = useAuthToken();
+  return useQuery({
+    queryKey: ["nearbyVenues", venueId, city, state, zip],
+    queryFn: () => getNearbyVenues(token!, venueId!, city!, state!, zip),
+    enabled: !!token && !!venueId && !!city && !!state,
+  });
+}
+
+export function useSubscriptionsQuery(venueId: string | null | undefined) {
+  const token = useAuthToken();
+  return useQuery({
+    queryKey: ["subscriptions", venueId],
+    queryFn: () => getSubscriptions(token!, venueId!),
     enabled: !!token && !!venueId,
   });
 }

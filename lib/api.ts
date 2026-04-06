@@ -343,3 +343,85 @@ export async function createOffender(
   if (!res.ok) throw new Error("Failed to create offender");
   return res.json();
 }
+
+// --- Nearby Venues ---
+
+export interface NearbyVenueResponse {
+  id: string;
+  name: string;
+  streetAddress: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  phoneNumber: string;
+}
+
+export async function getNearbyVenues(
+  token: string,
+  venueId: string,
+  city: string,
+  state: string,
+  zip?: string,
+): Promise<NearbyVenueResponse[]> {
+  const params = new URLSearchParams({ venueId, city, state });
+  if (zip) params.set("zip", zip);
+  const res = await fetch(`${API_URL}/venues/nearby?${params}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch nearby venues");
+  return res.json();
+}
+
+// --- Notification Subscriptions ---
+
+export interface NotificationSubscription {
+  id: string;
+  subscriber: string;
+  venueId: string;
+  name: string;
+  streetAddress: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  phoneNumber: string;
+}
+
+export async function getSubscriptions(
+  token: string,
+  venueId: string,
+): Promise<NotificationSubscription[]> {
+  const res = await fetch(`${API_URL}/notifications/${venueId}/subscriptions`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch subscriptions");
+  return res.json();
+}
+
+export async function subscribeToVenues(
+  token: string,
+  venueId: string,
+  venueIds: string[],
+): Promise<NotificationSubscription[]> {
+  const res = await fetch(`${API_URL}/notifications/${venueId}/subscriptions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ venueIds }),
+  });
+  if (!res.ok) throw new Error("Failed to subscribe");
+  return res.json();
+}
+
+export async function unsubscribeFromVenue(
+  token: string,
+  venueId: string,
+  targetVenueId: string,
+): Promise<void> {
+  const res = await fetch(
+    `${API_URL}/notifications/${venueId}/subscriptions/${targetVenueId}`,
+    { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
+  );
+  if (!res.ok) throw new Error("Failed to unsubscribe");
+}
