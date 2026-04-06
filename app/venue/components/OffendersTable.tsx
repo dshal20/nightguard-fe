@@ -161,6 +161,7 @@ function OffendersTableInner() {
     },
   ], []);
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: offenders,
     columns,
@@ -215,7 +216,7 @@ function OffendersTableInner() {
               </TableRow>
             ) : (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="border-[#2A2A34] hover:bg-white/[0.02]">
+                <TableRow key={row.id} className="border-[#2A2A34] hover:bg-white/2">
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-3 text-xs">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
