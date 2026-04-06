@@ -107,10 +107,10 @@ export default function RecentReports({ incidents, loading }: RecentReportsProps
             </TableHeader>
             <TableBody>
               {recent.map((inc) => (
-                <TableRow key={inc.id} className="border-white/[0.07] hover:bg-white/[0.02]">
+                <TableRow key={inc.id} className="border-white/[0.07] hover:bg-white/2">
                   <TableCell className="py-2">
                     <p className="text-xs font-medium text-white">{formatType(inc.type)}</p>
-                    <p className="max-w-[300px] truncate text-xs text-[#8B8B9D]">{inc.description}</p>
+                    <p className="max-w-75 truncate text-xs text-[#8B8B9D]">{inc.description}</p>
                   </TableCell>
                   <TableCell className="py-2">
                     <ColorTag variant={severityVariant[inc.severity]}>{inc.severity}</ColorTag>
