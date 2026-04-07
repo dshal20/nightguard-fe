@@ -32,7 +32,7 @@ export default function VenueLayout({
     if (!authLoading && !user) router.push("/login");
   }, [authLoading, user, router]);
 
-  const { data: venues = [], isLoading: venuesLoading, refetch } = useVenuesQuery();
+const { data: venues = [], isLoading: venuesLoading, refetch } = useVenuesQuery();
 
   if (authLoading || !user) {
     return (
