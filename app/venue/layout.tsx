@@ -5,8 +5,11 @@ import { useRouter } from "next/navigation";
 import { auth } from "../src/lib/firebase";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import VenueSidebar from "./components/VenueSidebar";
+import TopBar from "./components/TopBar";
 import { VenueProvider } from "./context/VenueContext";
-import { useVenuesQuery } from "@/lib/queries";
+import { useVenuesQuery, useAuthToken } from "@/lib/queries";
+import { useFcmNotifications } from "@/hooks/useFcmNotifications";
+import { Menu } from "lucide-react";
 
 export default function VenueLayout({
   children,
@@ -16,6 +19,7 @@ export default function VenueLayout({
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -29,7 +33,9 @@ export default function VenueLayout({
     if (!authLoading && !user) router.push("/login");
   }, [authLoading, user, router]);
 
-  const { data: venues = [], isLoading: venuesLoading, refetch } = useVenuesQuery();
+const { data: venues = [], isLoading: venuesLoading, refetch } = useVenuesQuery();
+  const authToken = useAuthToken();
+  useFcmNotifications(authToken);
 
   if (authLoading || !user) {
     return (
@@ -42,8 +48,30 @@ export default function VenueLayout({
   return (
     <VenueProvider venues={venues} loading={venuesLoading} refetch={refetch}>
       <div className="min-h-screen bg-[#101018]">
-        <VenueSidebar />
-        <div className="pl-[268px]">{children}</div>
+        <VenueSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+        {/* Backdrop — mobile only */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 z-[9] bg-black/50 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        <div className="lg:pl-67">
+          {/* Hamburger — only visible when sidebar would overlay */}
+          <div className="flex items-center px-4 pt-4 lg:hidden">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="flex items-center justify-center rounded-lg border border-[#2A2A34] bg-[#11111B] p-2 text-[#8B8B9D] transition hover:text-white"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          </div>
+
+          <TopBar />
+          {children}
+        </div>
       </div>
     </VenueProvider>
   );

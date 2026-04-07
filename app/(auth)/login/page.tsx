@@ -8,6 +8,7 @@ import { auth } from "../../src/lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { getMe } from "@/lib/api";
 import ProfileSetupDialog from "@/components/ProfileSetupDialog";
+import AbuseReportModal from "@/components/AbuseReportModal";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [out, setOut] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [abuseReportOpen, setAbuseReportOpen] = useState(false);
   const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
   const [pendingRedirect, setPendingRedirect] = useState("");
 
@@ -43,7 +45,7 @@ export default function LoginPage() {
       <h2 className="text-2xl font-semibold text-white">Welcome back</h2>
       <p className="mt-1 mb-8 text-sm text-zinc-500">Sign in to your account</p>
 
-      <div className="space-y-4">
+      <form onSubmit={(e) => { e.preventDefault(); signIn(); }} className="space-y-4">
         <div>
           <label className="mb-1.5 block text-sm font-medium text-zinc-300">Email</label>
           <input
@@ -67,15 +69,15 @@ export default function LoginPage() {
             style={{ backgroundColor: "#1a1a28", border: "1px solid rgba(255,255,255,0.08)" }}
           />
         </div>
-      </div>
 
-      <button
-        onClick={signIn}
-        className="mt-6 w-full cursor-pointer rounded-lg py-2.5 text-sm font-medium text-white transition hover:opacity-90 active:scale-[0.98]"
-        style={{ backgroundColor: "#2B36CD" }}
-      >
-        Sign in
-      </button>
+        <button
+          type="submit"
+          className="mt-2 w-full cursor-pointer rounded-lg py-2.5 text-sm font-medium text-white transition hover:opacity-90 active:scale-[0.98]"
+          style={{ backgroundColor: "#2B36CD" }}
+        >
+          Sign in
+        </button>
+      </form>
 
       {out && (
         <p
@@ -93,6 +95,16 @@ export default function LoginPage() {
         </Link>
       </p>
 
+      <p className="mt-4 text-center text-xs text-zinc-600">
+        Need to report a safety concern?{" "}
+        <button
+          onClick={() => setAbuseReportOpen(true)}
+          className="font-medium text-zinc-500 hover:text-zinc-300 transition underline underline-offset-2"
+        >
+          Submit an abuse report
+        </button>
+      </p>
+
       {dialogOpen && firebaseUser && (
         <ProfileSetupDialog
           open={dialogOpen}
@@ -100,6 +112,8 @@ export default function LoginPage() {
           onComplete={() => router.push(pendingRedirect)}
         />
       )}
+
+      <AbuseReportModal open={abuseReportOpen} onClose={() => setAbuseReportOpen(false)} />
     </>
   );
 }

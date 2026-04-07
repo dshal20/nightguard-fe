@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import IncidentReportDialog from "./IncidentReportDialog";
 
 interface VenueHeaderProps {
@@ -17,20 +18,21 @@ export default function VenueHeader({ venueId }: VenueHeaderProps) {
           Tonights Operations
         </h1>
         <div className="flex items-center gap-3">
-          <button
+          <Button
             type="button"
+            size="sm"
             onClick={() => setReportOpen(true)}
-            className="flex h-9 items-center gap-2 rounded-lg border border-[#2B36CD] bg-[#2B36CD]/20 px-4 text-xs font-bold text-white"
+            className="h-8 gap-1.5 border border-green-400/40 bg-green-400/10 px-3 text-green-400 hover:bg-green-400/15 hover:text-green-400"
           >
-            <span className="text-[#75FB94]">+</span>
-            New Report
-          </button>
-          <button
+            + New Report
+          </Button>
+          <Button
             type="button"
-            className="flex h-9 items-center gap-2 rounded-lg border border-[#2A2A34] bg-[#26262F]/48 px-4 text-xs font-bold text-white"
+            size="sm"
+            className="h-8 gap-1.5 border border-white/15 bg-white/10 px-3 text-white/70 hover:bg-white/15 hover:text-white"
           >
             Export Event Report
-          </button>
+          </Button>
         </div>
       </header>
 

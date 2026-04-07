@@ -13,7 +13,11 @@ import {
   createIncident,
   type IncidentType,
   type IncidentSeverity,
+  type OffenderResponse,
 } from "@/lib/api";
+import { useQueryClient } from "@tanstack/react-query";
+import { useOffendersQuery } from "@/lib/queries";
+import OffenderPicker from "./OffenderPicker";
 
 const INCIDENT_TYPES: IncidentType[] = [
   "VERBAL_HARASSMENT",
@@ -63,9 +67,12 @@ export default function IncidentReportDialog({
   const [description, setDescription] = useState("");
   const [keywordInput, setKeywordInput] = useState("");
   const [keywords, setKeywords] = useState<string[]>([]);
+  const [offenders, setOffenders] = useState<OffenderResponse[]>([]);
   const [submitted, setSubmitted] = useState(false);
+  const { data: allOffenders = [] } = useOffendersQuery(venueId);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   function resetForm() {
     setType("");
@@ -73,6 +80,7 @@ export default function IncidentReportDialog({
     setDescription("");
     setKeywordInput("");
     setKeywords([]);
+    setOffenders([]);
     setSubmitted(false);
     setSubmitting(false);
     setError(null);
@@ -120,8 +128,10 @@ export default function IncidentReportDialog({
         severity,
         description: description.trim(),
         keywords,
+        offenderIds: offenders.map((o) => o.id),
       });
 
+      queryClient.invalidateQueries({ queryKey: ["incidents"] });
       setSubmitted(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -218,7 +228,7 @@ export default function IncidentReportDialog({
                     key={level}
                     type="button"
                     onClick={() => setSeverity(level)}
-                    className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition ${
+                    className={`rounded border px-3 py-2 text-xs font-bold transition ${
                       active
                         ? `${colors.bg} ${colors.border} ${colors.text}`
                         : "border-[#2A2A34] bg-[#1a1a28] text-[#8B8B9D] hover:border-[#3A3A44]"
@@ -287,6 +297,14 @@ export default function IncidentReportDialog({
               </div>
             )}
           </div>
+
+          {/* Offenders */}
+          <OffenderPicker
+            venueId={venueId}
+            allOffenders={allOffenders}
+            selected={offenders}
+            onChange={setOffenders}
+          />
 
           {error && (
             <p className="rounded-lg border border-[#EB4869]/30 bg-[#EB4869]/10 px-4 py-2 text-sm text-[#E84868]">
