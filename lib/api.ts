@@ -372,6 +372,20 @@ export async function getNearbyVenues(
   return res.json();
 }
 
+// --- FCM Token ---
+
+export async function registerFcmToken(token: string, fcmToken: string): Promise<void> {
+  const res = await fetch(`${API_URL}/users/me/fcm-token`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ token: fcmToken }),
+  });
+  if (!res.ok) throw new Error("Failed to register FCM token");
+}
+
 // --- Notification Subscriptions ---
 
 export interface NotificationSubscription {
