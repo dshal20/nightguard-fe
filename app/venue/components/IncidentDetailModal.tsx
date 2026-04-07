@@ -12,8 +12,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { User, ArrowUpRight } from "lucide-react";
+import { User, Building2, ArrowUpRight } from "lucide-react";
 import { ColorTag, severityVariant } from "@/components/ui/color-tag";
+
+// Looser shape so the modal works with both IncidentResponse (has reporter)
+// and notification activity incidents (no reporter, has sourceVenueName instead).
+export type IncidentModalData = Omit<IncidentResponse, "reporter" | "venueId"> & {
+  reporter?: IncidentResponse["reporter"];
+  venueId?: string;
+};
 
 function formatType(type: string) {
   return type.split("_").map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
@@ -32,7 +39,7 @@ function OffenderRow({ id, onClose }: { id: string; onClose: () => void }) {
 
   useEffect(() => {
     let cancelled = false;
-    async function fetch() {
+    async function load() {
       try {
         const token = await auth.currentUser?.getIdToken();
         if (!token) return;
@@ -42,7 +49,7 @@ function OffenderRow({ id, onClose }: { id: string; onClose: () => void }) {
         if (!cancelled) setLoading(false);
       }
     }
-    fetch();
+    load();
     return () => { cancelled = true; };
   }, [id]);
 
@@ -86,11 +93,13 @@ function OffenderRow({ id, onClose }: { id: string; onClose: () => void }) {
 }
 
 interface Props {
-  incident: IncidentResponse | null;
+  incident: IncidentModalData | null;
   onClose: () => void;
+  /** When provided, renders a venue source row instead of the reporter row. */
+  sourceVenueName?: string;
 }
 
-export default function IncidentDetailModal({ incident, onClose }: Props) {
+export default function IncidentDetailModal({ incident, onClose, sourceVenueName }: Props) {
   const reporter = incident?.reporter;
   const reporterName = [reporter?.firstName, reporter?.lastName].filter(Boolean).join(" ");
 
@@ -118,7 +127,7 @@ export default function IncidentDetailModal({ incident, onClose }: Props) {
               <p className="text-sm text-[#DDDBDB]">{incident.description}</p>
             </div>
 
-            {incident.keywords.length > 0 && (
+            {incident.keywords?.length > 0 && (
               <div>
                 <p className="mb-1.5 text-[10px] font-bold uppercase text-[#8B8B9D]">Keywords</p>
                 <div className="flex flex-wrap gap-1.5">
@@ -144,18 +153,34 @@ export default function IncidentDetailModal({ incident, onClose }: Props) {
               </div>
             )}
 
-            <div>
-              <p className="mb-1.5 text-[10px] font-bold uppercase text-[#8B8B9D]">Reported By</p>
-              <div className="flex items-center gap-2.5 rounded-lg border border-[#2A2A34] bg-[#0F0F19] p-3">
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#262B75]">
-                  <User className="h-3.5 w-3.5 text-[#8B8B9D]" />
-                </div>
-                <div>
-                  {reporterName && <p className="text-xs font-bold text-[#DDDBDB]">{reporterName}</p>}
-                  <p className="text-[11px] text-[#8B8B9D]">{reporter?.email}</p>
+            {/* Reporter row — shown for own-venue incidents */}
+            {!sourceVenueName && reporter && (
+              <div>
+                <p className="mb-1.5 text-[10px] font-bold uppercase text-[#8B8B9D]">Reported By</p>
+                <div className="flex items-center gap-2.5 rounded-lg border border-[#2A2A34] bg-[#0F0F19] p-3">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#262B75]">
+                    <User className="h-3.5 w-3.5 text-[#8B8B9D]" />
+                  </div>
+                  <div>
+                    {reporterName && <p className="text-xs font-bold text-[#DDDBDB]">{reporterName}</p>}
+                    <p className="text-[11px] text-[#8B8B9D]">{reporter.email}</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Source venue row — shown for network notifications */}
+            {sourceVenueName && (
+              <div>
+                <p className="mb-1.5 text-[10px] font-bold uppercase text-[#8B8B9D]">Reported by Venue</p>
+                <div className="flex items-center gap-2.5 rounded-lg border border-[#2A2A34] bg-[#0F0F19] p-3">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#262B75]">
+                    <Building2 className="h-3.5 w-3.5 text-[#8B8B9D]" />
+                  </div>
+                  <p className="text-xs font-semibold text-[#DDDBDB]">{sourceVenueName}</p>
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3 rounded-lg border border-[#2A2A34] bg-[#0F0F19] p-3">
               <div>
