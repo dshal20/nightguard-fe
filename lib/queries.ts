@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/app/src/lib/firebase";
-import { getVenues, getIncidents, getCapacity, getHeadcounts, getOffenders, getOffenderIncidents, getNearbyVenues, getSubscriptions } from "@/lib/api";
+import { getVenues, getIncidents, getCapacity, getHeadcounts, getOffenders, getOffenderIncidents, getNearbyVenues, getSubscriptions, getNotificationActivity } from "@/lib/api";
 
 export function useAuthToken() {
   const [token, setToken] = useState<string | null>(null);
@@ -93,5 +93,15 @@ export function useSubscriptionsQuery(venueId: string | null | undefined) {
     queryKey: ["subscriptions", venueId],
     queryFn: () => getSubscriptions(token!, venueId!),
     enabled: !!token && !!venueId,
+  });
+}
+
+export function useNotificationActivityQuery(venueId: string | null | undefined) {
+  const token = useAuthToken();
+  return useQuery({
+    queryKey: ["notificationActivity", venueId],
+    queryFn: () => getNotificationActivity(token!, venueId!),
+    enabled: !!token && !!venueId,
+    refetchInterval: 30_000,
   });
 }

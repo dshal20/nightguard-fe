@@ -386,6 +386,46 @@ export async function registerFcmToken(token: string, fcmToken: string): Promise
   if (!res.ok) throw new Error("Failed to register FCM token");
 }
 
+// --- Notification Activity ---
+
+export type NotificationActivityType = "INCIDENT_REPORTED" | "OFFENDER_ADDED";
+
+export interface NotificationActivity {
+  id: string;
+  type: NotificationActivityType;
+  fromVenueId: string;
+  fromVenueName: string;
+  createdAt: string;
+  incident: {
+    id: string;
+    type: IncidentType;
+    severity: IncidentSeverity;
+    status: IncidentStatus;
+    description: string;
+    keywords: string[];
+    offenderIds: string[];
+    createdAt: string;
+    updatedAt: string;
+  } | null;
+  offender: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    physicalMarkers: string | null;
+  } | null;
+}
+
+export async function getNotificationActivity(
+  token: string,
+  venueId: string,
+): Promise<NotificationActivity[]> {
+  const res = await fetch(`${API_URL}/notifications/${venueId}/activity`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch activity");
+  return res.json();
+}
+
 // --- Notification Subscriptions ---
 
 export interface NotificationSubscription {

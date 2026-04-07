@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { getToken, onMessage } from "firebase/messaging";
 import { toast } from "sonner";
 import { getFirebaseMessaging } from "@/app/src/lib/firebase";
@@ -8,22 +9,20 @@ import { registerFcmToken } from "@/lib/api";
 
 const VAPID_KEY = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY!;
 
-/**
- * Registers the Firebase service worker, requests notification permission,
- * obtains an FCM token, sends it to the backend, and listens for
- * foreground messages to show as toasts.
- *
- * Must be called with a valid Firebase auth token for the current user.
- * Safe to call multiple times — skips re-registration if already done.
- */
+const SEVERITY_COLORS: Record<string, { bg: string; border: string }> = {
+  HIGH:   { bg: "rgba(232, 72, 104, 0.10)", border: "rgba(232, 72, 104, 0.30)" },
+  MEDIUM: { bg: "rgba(219, 169, 64, 0.10)",  border: "rgba(219, 169, 64, 0.30)" },
+  LOW:    { bg: "rgba(91, 106, 255, 0.10)",  border: "rgba(91, 106, 255, 0.30)" },
+};
+
 export function useFcmNotifications(authToken: string | null) {
   const registeredToken = useRef<string | null>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!authToken || typeof window === "undefined") return;
 
     let unsubscribe: (() => void) | null = null;
-
     const currentToken = authToken as string;
 
     async function init() {
@@ -45,12 +44,7 @@ export function useFcmNotifications(authToken: string | null) {
           { scope: "/" }
         );
 
-        // Chrome requires the service worker to be fully active before pushManager
-        // is available. navigator.serviceWorker.ready resolves only once a worker
-        // has reached the 'activated' state — unlike register() which resolves
-        // immediately after install starts.
         const registration = await navigator.serviceWorker.ready;
-
         const messaging = getFirebaseMessaging();
         if (!messaging) return;
 
@@ -61,27 +55,29 @@ export function useFcmNotifications(authToken: string | null) {
 
         if (!fcmToken) return;
 
-        // Only register with backend if the token changed
         if (fcmToken !== registeredToken.current) {
           await registerFcmToken(currentToken, fcmToken);
           registeredToken.current = fcmToken;
         }
 
-        // Listen for foreground messages and show as toasts
         unsubscribe = onMessage(messaging, (payload) => {
           const title = payload.notification?.title ?? "NightGuard Alert";
-          const body =
-            payload.notification?.body ?? "A new report has been filed in your network.";
+          const body = payload.notification?.body ?? "A new report has been filed in your network.";
+          const severity = payload.data?.severity;
+          const colors = severity ? SEVERITY_COLORS[severity] : undefined;
+
+          // Immediately refresh the Live Activity panel
+          queryClient.invalidateQueries({ queryKey: ["notificationActivity"] });
 
           toast(title, {
             description: body,
             duration: 8000,
+            style: colors
+              ? { backgroundColor: colors.bg, border: `1px solid ${colors.border}` }
+              : undefined,
             action: {
               label: "View",
-              onClick: () => {
-                // The venue page will show the relevant incident
-                window.location.href = "/venue";
-              },
+              onClick: () => { window.location.href = "/venue"; },
             },
           });
         });
@@ -91,8 +87,6 @@ export function useFcmNotifications(authToken: string | null) {
     }
 
     init();
-    return () => {
-      unsubscribe?.();
-    };
-  }, [authToken]);
+    return () => { unsubscribe?.(); };
+  }, [authToken, queryClient]);
 }

@@ -1,96 +1,147 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 
-const typeConfig: Record<
-  "warning" | "medical" | "trespass",
-  { dot: string; pulse: boolean }
-> = {
-  warning:  { dot: "#E84868", pulse: true },
-  medical:  { dot: "#4B7BF5", pulse: true },
-  trespass: { dot: "#DBA940", pulse: false },
-};
+import { ColorTag, severityVariant } from "@/components/ui/color-tag";
+import { useNotificationActivityQuery } from "@/lib/queries";
+import { useVenueContext } from "../context/VenueContext";
+import IncidentDetailModal from "./IncidentDetailModal";
+import type { NotificationActivity, IncidentType } from "@/lib/api";
+import type { IncidentModalData } from "./IncidentDetailModal";
 
-const activities: {
-  type: "warning" | "medical" | "trespass";
-  title: string;
-  description: string;
-  time: string;
-}[] = [
-  {
-    type: "warning",
-    title: "Nearby Report",
-    description: "Two patrons removed for fighting on 12th Street",
-    time: "2 min ago",
-  },
-  {
-    type: "medical",
-    title: "Medical Emergency",
-    description: "Medical emergency reported, 911 called",
-    time: "4 min ago",
-  },
-  {
-    type: "trespass",
-    title: "Trespass Issued",
-    description: "John Doe issued trespass at NG Downtown",
-    time: "9 min ago",
-  },
-  {
-    type: "trespass",
-    title: "Trespass Issued",
-    description: "Jane Smith issued trespass at NG Downtown",
-    time: "14 min ago",
-  },
-  {
-    type: "medical",
-    title: "Medical Emergency",
-    description: "Medical emergency reported, 911 called",
-    time: "21 min ago",
-  },
-];
+dayjs.extend(relativeTime);
+
+function formatIncidentType(type: IncidentType): string {
+  return type
+    .split("_")
+    .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
+    .join(" ");
+}
+
+function toModalData(activity: NotificationActivity): IncidentModalData | null {
+  const i = activity.incident;
+  if (!i) return null;
+  return {
+    id: i.id,
+    type: i.type,
+    severity: i.severity,
+    status: i.status,
+    description: i.description,
+    keywords: i.keywords,
+    offenderIds: i.offenderIds,
+    createdAt: i.createdAt,
+    updatedAt: i.updatedAt,
+  };
+}
 
 export default function LiveActivity() {
+  const { selectedVenue } = useVenueContext();
+  const { data: activity = [], isLoading } = useNotificationActivityQuery(
+    selectedVenue?.id,
+  );
+  const [selected, setSelected] = useState<NotificationActivity | null>(null);
+
   return (
-    <div className="rounded-xl border border-white/[0.07] bg-[#11111B]">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
-        <div>
-          <h2 className="text-base font-bold text-[#E2E2E2]">Live Activity</h2>
-          <p className="mt-0.5 text-[10px] text-[#44445A]">Last updated 30s ago</p>
+    <>
+      <div className="rounded-xl border border-white/[0.07] bg-[#11111B]">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/6 px-5 py-4">
+          <div>
+            <h2 className="text-base font-bold text-[#E2E2E2]">
+              Live Activity
+            </h2>
+            <p className="mt-0.5 text-[10px] text-[#44445A]">
+              {isLoading
+                ? "Loading…"
+                : `${activity.length} network event${activity.length !== 1 ? "s" : ""}`}
+            </p>
+          </div>
         </div>
-        <Button type="button" size="sm" className="h-8 gap-1.5 border border-white/15 bg-white/10 px-3 text-white/70 hover:bg-white/15 hover:text-white">
-          Filter
-        </Button>
+
+        {isLoading && (
+          <div className="px-5 py-6 text-center text-xs text-[#44445A]">
+            Loading…
+          </div>
+        )}
+
+        {!isLoading && activity.length === 0 && (
+          <div className="px-5 py-6 text-center text-xs text-[#44445A]">
+            No network activity yet
+          </div>
+        )}
+
+        <ul className="divide-y divide-white/[0.04]">
+          {activity.map((a) => {
+            const incident = a.incident;
+            const offender = a.offender;
+
+            return (
+              <li
+                key={a.id}
+                className="px-5 py-4 transition-colors hover:bg-white/[0.02]"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="truncate text-xs font-semibold text-white">
+                      {incident
+                        ? `${formatIncidentType(incident.type)} @ ${a.fromVenueName}`
+                        : offender
+                        ? `Offender Added @ ${a.fromVenueName}`
+                        : a.fromVenueName}
+                    </p>
+                    {incident?.description && (
+                      <p className="text-[12px] mt-1 leading-relaxed text-white/80">
+                        {incident.description}
+                      </p>
+                    )}
+                    {offender && !incident && (
+                      <div className="mt-1">
+                        <p className="text-[12px] font-medium text-white/80">
+                          {offender.firstName} {offender.lastName}
+                        </p>
+                        {offender.physicalMarkers && (
+                          <p className="text-[11px] text-[#44445A] mt-0.5">
+                            {offender.physicalMarkers}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <div className="ml-auto -mt-1">
+                      {incident && (
+                        <ColorTag variant={severityVariant[incident.severity]}>
+                          {incident.severity}
+                        </ColorTag>
+                      )}
+                    </div>
+                    <span className="text-[11px] tabular-nums text-[#44445A] mt-1">
+                      {dayjs(a.createdAt).fromNow()}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-2"></div>
+
+                {incident && (
+                  <button
+                    onClick={() => setSelected(a)}
+                    className="mt-3 w-full rounded-md border border-white/10 bg-white/5 py-1.5 text-[11px] font-medium text-[#8B8B9D] transition hover:bg-white/10 hover:text-white"
+                  >
+                    View Details
+                  </button>
+                )}
+              </li>
+            );
+          })}
+        </ul>
       </div>
 
-      <ul className="divide-y divide-white/[0.04]">
-        {activities.map((a, i) => {
-          const config = typeConfig[a.type];
-          return (
-            <li
-              key={i}
-              className="flex items-start gap-3.5 px-5 py-3.5 transition-colors hover:bg-white/[0.02]"
-            >
-              <div className="mt-1 shrink-0">
-                <span
-                  className={`block h-1.75 w-1.75 rounded-full ${config.pulse ? "animate-pulse" : ""}`}
-                  style={{ background: config.dot }}
-                />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-semibold text-white">{a.title}</p>
-                  <span className="shrink-0 text-[10px] tabular-nums text-[#44445A]">
-                    {a.time}
-                  </span>
-                </div>
-                <p className="mt-0.5 truncate text-[11px] leading-relaxed text-[#555568]">
-                  {a.description}
-                </p>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-    </div>
+      <IncidentDetailModal
+        incident={selected ? toModalData(selected) : null}
+        onClose={() => setSelected(null)}
+        sourceVenueName={selected?.fromVenueName}
+      />
+    </>
   );
 }
