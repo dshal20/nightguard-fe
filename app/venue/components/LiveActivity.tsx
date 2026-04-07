@@ -108,15 +108,18 @@ export default function LiveActivity() {
                       </div>
                     )}
                   </div>
-                  <div className="flex flex-col justify-end">
-                    <div className="ml-auto -mt-1">
-                      {incident && (
-                        <ColorTag variant={severityVariant[incident.severity]}>
-                          {incident.severity}
-                        </ColorTag>
-                      )}
-                    </div>
-                    <span className="text-[11px] tabular-nums text-[#44445A] mt-1">
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    {incident && (
+                      <ColorTag variant={severityVariant[incident.severity]}>
+                        {incident.severity}
+                      </ColorTag>
+                    )}
+                    {offender && !incident && (
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-[11px] font-semibold uppercase text-[#8B8B9D]">
+                        {offender.firstName?.[0]}{offender.lastName?.[0]}
+                      </div>
+                    )}
+                    <span className="text-[11px] tabular-nums text-[#44445A]">
                       {dayjs(a.createdAt).fromNow()}
                     </span>
                   </div>
