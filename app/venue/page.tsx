@@ -157,7 +157,11 @@ export default function VenueDashboard() {
           meta={
             loadingIncidents
               ? "Loading..."
-              : `${incidents.length} reports in queue`
+              : `${
+                  incidents.filter(
+                    (i) => dayjs().diff(dayjs(i.createdAt), "hour") < 24,
+                  ).length
+                } reports in queue`
           }
           subtitle="All incidents logged last 24 hours"
           accent="amber"
