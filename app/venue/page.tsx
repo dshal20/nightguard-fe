@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { auth } from "../src/lib/firebase";
 import { joinVenue } from "@/lib/api";
-import { useIncidentsQuery, useCapacityQuery, useHeadcountsQuery } from "@/lib/queries";
+import {
+  useIncidentsQuery,
+  useCapacityQuery,
+  useHeadcountsQuery,
+} from "@/lib/queries";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
@@ -69,9 +73,7 @@ function JoinVenuePrompt() {
             />
           </div>
 
-          {error && (
-            <p className="text-xs text-red-400">{error}</p>
-          )}
+          {error && <p className="text-xs text-red-400">{error}</p>}
 
           <Button
             type="submit"
@@ -92,16 +94,25 @@ function JoinVenuePrompt() {
 
 export default function VenueDashboard() {
   const { venues, selectedVenue, loading } = useVenueContext();
-  const { data: incidents = [], isLoading: loadingIncidents } = useIncidentsQuery(selectedVenue?.id);
+  const { data: incidents = [], isLoading: loadingIncidents } =
+    useIncidentsQuery(selectedVenue?.id);
   const { data: capacityData } = useCapacityQuery(selectedVenue?.id);
   const { data: headcounts = [] } = useHeadcountsQuery(selectedVenue?.id);
 
   const activeIncidents = incidents.filter((i) => i.status === "ACTIVE");
   const maxCapacity = capacityData?.capacity ?? null;
-  const latestHeadcount = headcounts.length > 0 ? headcounts[headcounts.length - 1] : null;
+  const latestHeadcount =
+    headcounts.length > 0 ? headcounts[headcounts.length - 1] : null;
   const currentCount = latestHeadcount?.headcount ?? 0;
   const capacityPct = maxCapacity ? currentCount / maxCapacity : null;
-  const capacityAccent = capacityPct == null ? "green" : capacityPct >= 1 ? "red" : capacityPct >= 0.9 ? "amber" : "green";
+  const capacityAccent =
+    capacityPct == null
+      ? "green"
+      : capacityPct >= 1
+        ? "red"
+        : capacityPct >= 0.9
+          ? "amber"
+          : "green";
 
   if (loading) {
     return (
@@ -137,14 +148,18 @@ export default function VenueDashboard() {
           accent="red"
         />
         <StatCard
-          title="TOTAL TONIGHT"
-          value={incidents.length}
+          title="TOTAL - LAST 24 HOURS"
+          value={
+            incidents.filter(
+              (i) => dayjs().diff(dayjs(i.createdAt), "hour") < 24,
+            ).length
+          }
           meta={
             loadingIncidents
               ? "Loading..."
               : `${incidents.length} reports in queue`
           }
-          subtitle="All incidents logged tonight"
+          subtitle="All incidents logged last 24 hours"
           accent="amber"
         />
         <StatCard
@@ -154,10 +169,12 @@ export default function VenueDashboard() {
             maxCapacity == null
               ? "No capacity set"
               : latestHeadcount
-              ? `Updated ${dayjs(latestHeadcount.createdAt).fromNow()}`
-              : "No headcount logged"
+                ? `Updated ${dayjs(latestHeadcount.createdAt).fromNow()}`
+                : "No headcount logged"
           }
-          subtitle={maxCapacity != null ? `of ${maxCapacity} max capacity` : undefined}
+          subtitle={
+            maxCapacity != null ? `of ${maxCapacity} max capacity` : undefined
+          }
           accent={capacityAccent}
           progress={capacityPct ?? undefined}
         />
