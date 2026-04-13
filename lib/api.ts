@@ -462,6 +462,7 @@ export interface NotificationSubscription {
   state: string;
   postalCode: string;
   phoneNumber: string;
+  notificationLevel: IncidentSeverity;
 }
 
 export async function getSubscriptions(
@@ -479,6 +480,7 @@ export async function subscribeToVenues(
   token: string,
   venueId: string,
   venueIds: string[],
+  notificationLevel: IncidentSeverity = "LOW",
 ): Promise<NotificationSubscription[]> {
   const res = await fetch(`${API_URL}/notifications/${venueId}/subscriptions`, {
     method: "POST",
@@ -486,9 +488,30 @@ export async function subscribeToVenues(
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ venueIds }),
+    body: JSON.stringify({ venueIds, notificationLevel }),
   });
   if (!res.ok) throw new Error("Failed to subscribe");
+  return res.json();
+}
+
+export async function updateSubscriptionLevel(
+  token: string,
+  venueId: string,
+  targetVenueId: string,
+  notificationLevel: IncidentSeverity,
+): Promise<NotificationSubscription> {
+  const res = await fetch(
+    `${API_URL}/notifications/${venueId}/subscriptions/${targetVenueId}`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ notificationLevel }),
+    },
+  );
+  if (!res.ok) throw new Error("Failed to update notification level");
   return res.json();
 }
 

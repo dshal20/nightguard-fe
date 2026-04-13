@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useVenueContext } from "../context/VenueContext";
 import { useNearbyVenuesQuery, useSubscriptionsQuery, useAuthToken } from "@/lib/queries";
-import { subscribeToVenues, unsubscribeFromVenue, updateDataSharing } from "@/lib/api";
+import { subscribeToVenues, unsubscribeFromVenue, updateDataSharing, updateSubscriptionLevel, type IncidentSeverity } from "@/lib/api";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -53,6 +53,7 @@ export default function VenuePreferencesPage() {
   const [search, setSearch] = useState({ city: "", state: "", zip: "" });
   const [committed, setCommitted] = useState({ city: "", state: "", zip: "" });
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [pendingLevelId, setPendingLevelId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!selectedVenue) return;
@@ -107,6 +108,17 @@ export default function VenuePreferencesPage() {
       queryClient.invalidateQueries({ queryKey: ["subscriptions", selectedVenue.id] });
     } finally {
       setPendingId(null);
+    }
+  }
+
+  async function handleLevelChange(targetVenueId: string, level: IncidentSeverity) {
+    if (!token || !selectedVenue) return;
+    setPendingLevelId(targetVenueId);
+    try {
+      await updateSubscriptionLevel(token, selectedVenue.id, targetVenueId, level);
+      queryClient.invalidateQueries({ queryKey: ["subscriptions", selectedVenue.id] });
+    } finally {
+      setPendingLevelId(null);
     }
   }
 
@@ -253,12 +265,14 @@ export default function VenuePreferencesPage() {
                     <TableHead className="text-[10px] font-bold uppercase text-[#555568]">Venue</TableHead>
                     <TableHead className="text-[10px] font-bold uppercase text-[#555568]">Address</TableHead>
                     <TableHead className="text-[10px] font-bold uppercase text-[#555568]">Location</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase text-[#555568]">Min. Level</TableHead>
                     <TableHead />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {subscriptions.map((sub) => {
                     const loading = pendingId === sub.venueId;
+                    const levelLoading = pendingLevelId === sub.venueId;
                     return (
                       <TableRow key={sub.id} className="border-white/[0.06] hover:bg-white/2">
                         <TableCell className="py-2.5 text-xs font-medium text-[#DDDBDB]">
@@ -269,6 +283,21 @@ export default function VenuePreferencesPage() {
                         </TableCell>
                         <TableCell className="py-2.5 text-xs text-[#555568]">
                           {sub.city}, {sub.state} {sub.postalCode}
+                        </TableCell>
+                        <TableCell className="py-2.5">
+                          <div className="relative inline-flex items-center gap-1.5">
+                            {levelLoading && <Loader2 className="h-3 w-3 animate-spin text-[#555568]" />}
+                            <select
+                              value={sub.notificationLevel}
+                              disabled={levelLoading}
+                              onChange={(e) => handleLevelChange(sub.venueId, e.target.value as IncidentSeverity)}
+                              className="h-7 rounded border border-white/[0.08] bg-[#0D0D16] px-2 text-[11px] font-semibold text-[#DDDBDB] focus:outline-none disabled:opacity-50"
+                            >
+                              <option value="LOW">Low+</option>
+                              <option value="MEDIUM">Medium+</option>
+                              <option value="HIGH">High only</option>
+                            </select>
+                          </div>
                         </TableCell>
                         <TableCell className="py-2.5 text-right">
                           <Button
