@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Building2, KeyRound, Loader2 } from "lucide-react";
 import VenueHeader from "./components/VenueHeader";
 import StatCard from "./components/StatCard";
+import NetworkAlertsCard from "./components/NetworkAlertsCard";
 import RecentReports from "./components/RecentReports";
 import LiveActivity from "./components/LiveActivity";
 import OffenderSearch from "./components/OffenderSearch";
@@ -95,6 +96,7 @@ export default function VenueDashboard() {
   const { data: capacityData } = useCapacityQuery(selectedVenue?.id);
   const { data: headcounts = [] } = useHeadcountsQuery(selectedVenue?.id);
 
+  const activeIncidents = incidents.filter((i) => i.status === "ACTIVE");
   const maxCapacity = capacityData?.capacity ?? null;
   const latestHeadcount = headcounts.length > 0 ? headcounts[headcounts.length - 1] : null;
   const currentCount = latestHeadcount?.headcount ?? 0;
@@ -125,11 +127,11 @@ export default function VenueDashboard() {
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="ACTIVE INCIDENTS"
-          value={incidents.length}
+          value={loadingIncidents ? "—" : activeIncidents.length}
           meta={
             loadingIncidents
               ? "Loading..."
-              : `${incidents.length} reported`
+              : `${activeIncidents.length} reported`
           }
           subtitle="Within this venue"
           accent="red"
@@ -159,13 +161,7 @@ export default function VenueDashboard() {
           accent={capacityAccent}
           progress={capacityPct ?? undefined}
         />
-        <StatCard
-          title="NETWORK ALERTS"
-          value={13}
-          meta="Last report 2 mins ago"
-          subtitle="From 4 Venues"
-          accent="blue"
-        />
+        <NetworkAlertsCard />
       </div>
       <div className="mt-8 grid grid-cols-1 gap-8 xl:grid-cols-3">
         <div className="xl:col-span-2">

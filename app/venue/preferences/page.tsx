@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Building2, MapPin, Phone, Key, Save, Bell, BellOff, Loader2, Search } from "lucide-react";
+import { Building2, MapPin, Phone, Key, Save, Bell, BellOff, Loader2, Search, Share2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useVenueContext } from "../context/VenueContext";
 import { useNearbyVenuesQuery, useSubscriptionsQuery, useAuthToken } from "@/lib/queries";
-import { subscribeToVenues, unsubscribeFromVenue } from "@/lib/api";
+import { subscribeToVenues, unsubscribeFromVenue, updateDataSharing } from "@/lib/api";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -41,15 +41,15 @@ function Field({
 }
 
 export default function VenuePreferencesPage() {
-  const { selectedVenue } = useVenueContext();
+  const { selectedVenue, refetch } = useVenueContext();
   const token = useAuthToken();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>("settings");
-
   const [form, setForm] = useState({
     name: "", streetAddress: "", city: "", state: "", postalCode: "", phoneNumber: "",
   });
   const [saved, setSaved] = useState(false);
+  const [dataSharingPending, setDataSharingPending] = useState(false);
   const [search, setSearch] = useState({ city: "", state: "", zip: "" });
   const [committed, setCommitted] = useState({ city: "", state: "", zip: "" });
   const [pendingId, setPendingId] = useState<string | null>(null);
@@ -82,6 +82,17 @@ export default function VenuePreferencesPage() {
     e.preventDefault();
     // TODO: connect to backend
     setSaved(true);
+  }
+
+  async function handleDataSharingToggle() {
+    if (!token || !selectedVenue) return;
+    setDataSharingPending(true);
+    try {
+      await updateDataSharing(token, selectedVenue.id, !selectedVenue.dataSharingEnabled);
+      await refetch();
+    } finally {
+      setDataSharingPending(false);
+    }
   }
 
   async function handleToggle(targetId: string) {
@@ -175,6 +186,35 @@ export default function VenuePreferencesPage() {
               <h2 className="text-sm font-bold text-[#DDDBDB]">Invite Code</h2>
             </div>
             <Field label="Invite Code" name="inviteCode" value={selectedVenue.inviteCode} readOnly hint="Share this code with staff so they can join this venue. Contact support to rotate it." />
+          </section>
+
+          <section className="rounded-xl border border-white/[0.07] bg-[#11111B] p-6">
+            <div className="mb-5 flex items-center gap-2.5">
+              <Share2 className="h-4 w-4 text-[#555568]" />
+              <h2 className="text-sm font-bold text-[#DDDBDB]">Data Sharing</h2>
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-medium text-[#DDDBDB]">Share venue data with the network</p>
+                <p className="mt-0.5 text-[11px] text-[#555568]">
+                  When enabled, this venue appears in nearby venue searches and can receive network subscriptions from other venues.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleDataSharingToggle}
+                disabled={dataSharingPending}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus:outline-none disabled:opacity-50 ${
+                  selectedVenue.dataSharingEnabled ? "bg-primary" : "bg-white/10"
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform ${
+                    selectedVenue.dataSharingEnabled ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </div>
           </section>
 
           <div className="flex items-center gap-3">
