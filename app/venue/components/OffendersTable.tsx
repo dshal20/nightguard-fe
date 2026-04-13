@@ -71,10 +71,18 @@ function OffendersTableInner() {
       cell: ({ row }) => {
         const o = row.original;
         const initials = `${o.firstName[0] ?? ""}${o.lastName[0] ?? ""}`.toUpperCase();
+        const photo = o.photoUrls?.[0];
         return (
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#26262F] text-xs font-bold text-[#8B8B9D]">
-              {initials}
+            <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full">
+              {photo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={photo} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-[#26262F] text-xs font-bold text-[#8B8B9D]">
+                  {initials}
+                </div>
+              )}
             </div>
             <span className="font-medium text-white">{o.firstName} {o.lastName}</span>
           </div>
