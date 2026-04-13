@@ -64,6 +64,7 @@ export interface OffenderResponse {
   currentStatus?: string;
   globalId?: string;
   notes?: string;
+  photoUrls: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -76,6 +77,7 @@ export interface CreateOffenderRequest {
   riskScore?: number;
   currentStatus?: string;
   notes?: string;
+  photoUrls?: string[];
 }
 
 export interface CreateIncidentRequest {
@@ -539,6 +541,19 @@ export async function updateSubscriptionLevel(
   );
   if (!res.ok) throw new Error("Failed to update notification level");
   return res.json();
+}
+
+export async function uploadFile(token: string, file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetch(`${API_URL}/upload`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
+  if (!res.ok) throw new Error("Failed to upload file");
+  const data = await res.json();
+  return data.url;
 }
 
 export async function unsubscribeFromVenue(

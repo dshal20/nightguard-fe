@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Ban, ShieldX } from "lucide-react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { Ban, ShieldX, X, ChevronLeft, ChevronRight } from "lucide-react";
 import type { OffenderResponse } from "@/lib/api";
 import { ColorTag, severityVariant } from "@/components/ui/color-tag";
 import {
@@ -108,7 +109,17 @@ interface Props {
 
 export default function OffenderDetailModal({ offender, onClose }: Props) {
   const [pendingAction, setPendingAction] = useState<ActionType | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const { data: incidents = [], isLoading: incidentsLoading } = useOffenderIncidentsQuery(offender?.id);
+
+  const photos = offender?.photoUrls ?? [];
+
+  useEffect(() => { setLightboxIndex(null); }, [offender?.id]);
+
+  function openLightbox(index: number) { setLightboxIndex(index); }
+  function closeLightbox() { setLightboxIndex(null); }
+  function prevPhoto() { setLightboxIndex((i) => (i != null ? (i - 1 + photos.length) % photos.length : 0)); }
+  function nextPhoto() { setLightboxIndex((i) => (i != null ? (i + 1) % photos.length : 0)); }
 
   function handleConfirmAction(expiresAt: string | null) {
     // No backend connection yet — just close
@@ -136,9 +147,25 @@ export default function OffenderDetailModal({ offender, onClose }: Props) {
             <div className="space-y-5">
               {/* Avatar + name */}
               <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#26262F] text-lg font-bold text-[#8B8B9D]">
-                  {initials}
-                </div>
+                <button
+                  type="button"
+                  onClick={() => photos.length > 0 && openLightbox(0)}
+                  className="shrink-0 overflow-hidden rounded-full focus:outline-none"
+                  style={{ cursor: photos.length > 0 ? "pointer" : "default" }}
+                >
+                  {photos.length > 0 ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={photos[0]}
+                      alt={fullName}
+                      className="h-14 w-14 rounded-full object-cover ring-2 ring-[#2A2A34]"
+                    />
+                  ) : (
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#26262F] text-lg font-bold text-[#8B8B9D]">
+                      {initials}
+                    </div>
+                  )}
+                </button>
                 <div>
                   <p className="text-base font-bold text-white">{fullName}</p>
                   {offender.currentStatus && (
@@ -148,6 +175,23 @@ export default function OffenderDetailModal({ offender, onClose }: Props) {
                   )}
                 </div>
               </div>
+
+              {/* Additional photo thumbnails */}
+              {photos.length > 1 && (
+                <div className="flex flex-wrap gap-2">
+                  {photos.slice(1).map((src, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => openLightbox(i + 1)}
+                      className="h-16 w-16 overflow-hidden rounded-lg border border-[#2A2A34] transition hover:border-[#3B3B5A] hover:opacity-90 focus:outline-none"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={src} alt="" className="h-full w-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
 
               {/* Details grid */}
               <div className="grid grid-cols-2 gap-3 rounded-lg border border-[#2A2A34] bg-[#0F0F19] p-3">
@@ -251,6 +295,59 @@ export default function OffenderDetailModal({ offender, onClose }: Props) {
           onConfirm={handleConfirmAction}
           onCancel={() => setPendingAction(null)}
         />
+      )}
+
+      {lightboxIndex !== null && photos.length > 0 && createPortal(
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90"
+          onClick={closeLightbox}
+        >
+          {/* Close */}
+          <button
+            type="button"
+            onClick={closeLightbox}
+            className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+          >
+            <X className="h-4 w-4" />
+          </button>
+
+          {/* Prev */}
+          {photos.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); prevPhoto(); }}
+              className="absolute left-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+          )}
+
+          {/* Image */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={photos[lightboxIndex]}
+            alt=""
+            className="max-h-[85vh] max-w-[85vw] rounded-lg object-contain shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+
+          {/* Next */}
+          {photos.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); nextPhoto(); }}
+              className="absolute right-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          )}
+
+          {/* Counter */}
+          <p className="absolute bottom-4 text-xs text-white/50">
+            {lightboxIndex + 1} / {photos.length}
+          </p>
+        </div>,
+        document.body
       )}
     </>
   );
