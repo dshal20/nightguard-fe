@@ -64,6 +64,7 @@ export interface OffenderResponse {
   currentStatus?: string;
   globalId?: string;
   notes?: string;
+  photoUrls: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -76,6 +77,7 @@ export interface CreateOffenderRequest {
   riskScore?: number;
   currentStatus?: string;
   notes?: string;
+  photoUrls?: string[];
 }
 
 export interface CreateIncidentRequest {
