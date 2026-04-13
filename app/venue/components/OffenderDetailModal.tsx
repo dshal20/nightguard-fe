@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Ban, ShieldX, X, ChevronLeft, ChevronRight } from "lucide-react";
 import type { OffenderResponse } from "@/lib/api";
@@ -113,6 +113,8 @@ export default function OffenderDetailModal({ offender, onClose }: Props) {
   const { data: incidents = [], isLoading: incidentsLoading } = useOffenderIncidentsQuery(offender?.id);
 
   const photos = offender?.photoUrls ?? [];
+
+  useEffect(() => { setLightboxIndex(null); }, [offender?.id]);
 
   function openLightbox(index: number) { setLightboxIndex(index); }
   function closeLightbox() { setLightboxIndex(null); }
