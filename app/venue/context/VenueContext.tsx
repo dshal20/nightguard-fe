@@ -3,10 +3,9 @@
 import {
   createContext,
   useContext,
-  useState,
-  useEffect,
   type ReactNode,
 } from "react";
+import { useRouter, usePathname, useParams } from "next/navigation";
 import { type Venue } from "@/lib/api";
 
 interface VenueContextValue {
@@ -40,13 +39,20 @@ export function VenueProvider({
   loading: boolean;
   refetch: () => unknown;
 }) {
-  const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
+  const params = useParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
-  useEffect(() => {
-    if (venues.length > 0 && !selectedVenue) {
-      setSelectedVenue(venues[0]);
-    }
-  }, [venues]);
+  const venueId = typeof params?.id === "string" ? params.id : null;
+  const selectedVenue = venueId
+    ? (venues.find((v) => v.id === venueId) ?? null)
+    : (venues[0] ?? null);
+
+  function setSelectedVenue(v: Venue) {
+    // Preserve the current sub-path (e.g. /incidents) when switching venues
+    const subPath = pathname?.replace(/^\/venue\/[^/]+/, "") ?? "";
+    router.push(`/venue/${v.id}${subPath}`);
+  }
 
   return (
     <VenueContext.Provider value={{ venues, selectedVenue, setSelectedVenue, loading, refetch }}>

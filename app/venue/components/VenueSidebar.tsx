@@ -27,22 +27,6 @@ type NavItem = {
   badge?: number;
 };
 
-const nav: NavItem[] = [
-  { label: "Dashboard",  href: "/venue",           icon: <House      className="h-3.75 w-3.75" />, color: "#2B36CD" },
-  { label: "Incidents",  href: "/venue/incidents",  icon: <ShieldAlert className="h-3.75 w-3.75" />, color: "#E84868" },
-  { label: "Capacity",   href: "/venue/capacity",   icon: <Users      className="h-3.75 w-3.75" />, color: "#75FB94" },
-  { label: "Offenders",  href: "/venue/offenders",  icon: <FileUser   className="h-3.75 w-3.75" />, color: "#DBA940" },
-  { label: "Staff",      href: "#",                 icon: <Users      className="h-3.75 w-3.75" />, color: "#8B8B9D" },
-];
-const network: NavItem[] = [
-  { label: "Network Alerts", href: "#", icon: <Megaphone className="h-3.75 w-3.75" />, color: "#DBA940" },
-  { label: "Nearby Venues",  href: "#", icon: <MapPin    className="h-3.75 w-3.75" />, color: "#2B36CD" },
-];
-const settings: NavItem[] = [
-  { label: "Venue Preferences", href: "/venue/preferences", icon: <Settings className="h-3.75 w-3.75" />, color: "#8B8B9D" },
-  { label: "Account",     href: "/venue/account", icon: <User     className="h-3.75 w-3.75" />, color: "#8B8B9D" },
-];
-
 function NavGroup({
   items,
   pathname,
@@ -119,6 +103,23 @@ export default function VenueSidebar({
   const pathname = usePathname();
   const [displayName, setDisplayName] = useState<string | null>(null);
   const { venues, selectedVenue, setSelectedVenue, loading: venuesLoading } = useVenueContext();
+
+  const id = selectedVenue?.id ?? null;
+  const nav: NavItem[] = [
+    { label: "Dashboard",  href: id ? `/venue/${id}` : "#",             icon: <House      className="h-3.75 w-3.75" />, color: "#2B36CD" },
+    { label: "Incidents",  href: id ? `/venue/${id}/incidents` : "#",   icon: <ShieldAlert className="h-3.75 w-3.75" />, color: "#E84868" },
+    { label: "Capacity",   href: id ? `/venue/${id}/capacity` : "#",    icon: <Users      className="h-3.75 w-3.75" />, color: "#75FB94" },
+    { label: "Offenders",  href: id ? `/venue/${id}/offenders` : "#",   icon: <FileUser   className="h-3.75 w-3.75" />, color: "#DBA940" },
+    { label: "Staff",      href: "#",                                    icon: <Users      className="h-3.75 w-3.75" />, color: "#8B8B9D" },
+  ];
+  const network: NavItem[] = [
+    { label: "Network Alerts", href: "#", icon: <Megaphone className="h-3.75 w-3.75" />, color: "#DBA940" },
+    { label: "Nearby Venues",  href: "#", icon: <MapPin    className="h-3.75 w-3.75" />, color: "#2B36CD" },
+  ];
+  const settings: NavItem[] = [
+    { label: "Venue Preferences", href: id ? `/venue/${id}/preferences` : "#", icon: <Settings className="h-3.75 w-3.75" />, color: "#8B8B9D" },
+    { label: "Account",           href: id ? `/venue/${id}/account` : "#",      icon: <User     className="h-3.75 w-3.75" />, color: "#8B8B9D" },
+  ];
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {

@@ -5,14 +5,14 @@ import { Users, Clock, CheckCircle2, RotateCcw, Settings, TrendingUp } from "luc
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useQueryClient } from "@tanstack/react-query";
-import { auth } from "../../src/lib/firebase";
+import { auth } from "../../../src/lib/firebase";
 import { setCapacity, addHeadcount } from "@/lib/api";
 import {
   useCapacityQuery,
   useHeadcountsQuery,
   useAuthToken,
 } from "@/lib/queries";
-import { useVenueContext } from "../context/VenueContext";
+import { useVenueContext } from "../../context/VenueContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 

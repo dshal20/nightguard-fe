@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
-import { auth } from "../../src/lib/firebase";
+import { auth } from "../../../src/lib/firebase";
 import { getMe, getVenues, type UserProfile, type Venue } from "@/lib/api";
 
 export default function VenueAccountPage() {
