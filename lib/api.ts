@@ -20,6 +20,7 @@ export interface Venue {
   postalCode: string;
   phoneNumber: string;
   inviteCode: string;
+  dataSharingEnabled: boolean;
 }
 
 export interface CreateVenueRequest {
@@ -344,6 +345,23 @@ export async function createOffender(
   return res.json();
 }
 
+export async function updateDataSharing(
+  token: string,
+  venueId: string,
+  enabled: boolean,
+): Promise<Venue> {
+  const res = await fetch(`${API_URL}/venues/${venueId}/data-sharing`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ enabled }),
+  });
+  if (!res.ok) throw new Error("Failed to update data sharing");
+  return res.json();
+}
+
 // --- Nearby Venues ---
 
 export interface NearbyVenueResponse {
@@ -418,8 +436,14 @@ export interface NotificationActivity {
 export async function getNotificationActivity(
   token: string,
   venueId: string,
+  sinceMinutes?: number,
 ): Promise<NotificationActivity[]> {
-  const res = await fetch(`${API_URL}/notifications/${venueId}/activity`, {
+  const url = new URL(`${API_URL}/notifications/${venueId}/activity`);
+  if (sinceMinutes) {
+    const since = new Date(Date.now() - sinceMinutes * 60 * 1000).toISOString();
+    url.searchParams.set("since", since);
+  }
+  const res = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error("Failed to fetch activity");

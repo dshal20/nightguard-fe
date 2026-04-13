@@ -69,9 +69,15 @@ export function useFcmNotifications(authToken: string | null) {
           // Immediately refresh the Live Activity panel
           queryClient.invalidateQueries({ queryKey: ["notificationActivity"] });
 
+          new Audio("/new-alert.mp3").play().catch(() => {});
+
+          const originalTitle = document.title;
+          document.title = "(1) Notification";
           toast(title, {
             description: body,
             duration: 8000,
+            onDismiss: () => { document.title = originalTitle; },
+            onAutoClose: () => { document.title = originalTitle; },
             style: colors
               ? { backgroundColor: colors.bg, border: `1px solid ${colors.border}` }
               : undefined,

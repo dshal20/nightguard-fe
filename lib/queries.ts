@@ -96,11 +96,11 @@ export function useSubscriptionsQuery(venueId: string | null | undefined) {
   });
 }
 
-export function useNotificationActivityQuery(venueId: string | null | undefined) {
+export function useNotificationActivityQuery(venueId: string | null | undefined, sinceMinutes?: number) {
   const token = useAuthToken();
   return useQuery({
-    queryKey: ["notificationActivity", venueId],
-    queryFn: () => getNotificationActivity(token!, venueId!),
+    queryKey: ["notificationActivity", venueId, sinceMinutes],
+    queryFn: () => getNotificationActivity(token!, venueId!, sinceMinutes),
     enabled: !!token && !!venueId,
     refetchInterval: 30_000,
   });
