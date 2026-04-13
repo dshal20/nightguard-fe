@@ -1,6 +1,6 @@
 "use client";
 
-import OffendersTable from "../components/OffendersTable";
+import OffendersTable from "../../components/OffendersTable";
 
 export default function OffendersPage() {
   return (

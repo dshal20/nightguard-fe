@@ -14,9 +14,9 @@ import { type IncidentSeverity, type IncidentStatus, type IncidentResponse } fro
 import { Eye, Loader2, Pencil, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ColorTag, severityVariant, statusVariant } from "@/components/ui/color-tag";
-import IncidentDetailModal from "../components/IncidentDetailModal";
-import EditIncidentModal from "../components/EditIncidentModal";
-import { useVenueContext } from "../context/VenueContext";
+import IncidentDetailModal from "../../components/IncidentDetailModal";
+import EditIncidentModal from "../../components/EditIncidentModal";
+import { useVenueContext } from "../../context/VenueContext";
 import { useIncidentsQuery } from "@/lib/queries";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";

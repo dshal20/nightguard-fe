@@ -103,6 +103,32 @@ export interface IncidentResponse {
   updatedAt: string;
 }
 
+export interface UpdateVenueRequest {
+  name?: string;
+  streetAddress?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  phoneNumber?: string;
+}
+
+export async function updateVenue(
+  token: string,
+  venueId: string,
+  payload: UpdateVenueRequest,
+): Promise<Venue> {
+  const res = await fetch(`${API_URL}/venues/${venueId}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Failed to update venue");
+  return res.json();
+}
+
 export async function createVenue(
   token: string,
   payload: CreateVenueRequest,

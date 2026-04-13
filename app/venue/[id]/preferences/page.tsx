@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import { Building2, MapPin, Phone, Key, Save, Bell, BellOff, Loader2, Search, Share2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useVenueContext } from "../context/VenueContext";
+import { useVenueContext } from "../../context/VenueContext";
 import { useNearbyVenuesQuery, useSubscriptionsQuery, useAuthToken } from "@/lib/queries";
-import { subscribeToVenues, unsubscribeFromVenue, updateDataSharing, updateSubscriptionLevel, type IncidentSeverity } from "@/lib/api";
+import { subscribeToVenues, unsubscribeFromVenue, updateDataSharing, updateSubscriptionLevel, updateVenue, type IncidentSeverity } from "@/lib/api";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -49,6 +49,7 @@ export default function VenuePreferencesPage() {
     name: "", streetAddress: "", city: "", state: "", postalCode: "", phoneNumber: "",
   });
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState(false);
   const [dataSharingPending, setDataSharingPending] = useState(false);
   const [search, setSearch] = useState({ city: "", state: "", zip: "" });
   const [committed, setCommitted] = useState({ city: "", state: "", zip: "" });
@@ -79,10 +80,18 @@ export default function VenuePreferencesPage() {
     return (v: string) => { setSaved(false); setForm((f) => ({ ...f, [key]: v })); };
   }
 
-  function handleSave(e: React.FormEvent) {
+  async function handleSave(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
-    // TODO: connect to backend
-    setSaved(true);
+    if (!token || !selectedVenue) return;
+    setSaved(false);
+    setSaveError(false);
+    try {
+      await updateVenue(token, selectedVenue.id, form);
+      await refetch();
+      setSaved(true);
+    } catch {
+      setSaveError(true);
+    }
   }
 
   async function handleDataSharingToggle() {
@@ -235,6 +244,7 @@ export default function VenuePreferencesPage() {
               Save Changes
             </Button>
             {saved && <p className="text-xs text-[#75FB94]">Changes saved.</p>}
+            {saveError && <p className="text-xs text-red-400">Failed to save changes.</p>}
           </div>
         </form>
       )}

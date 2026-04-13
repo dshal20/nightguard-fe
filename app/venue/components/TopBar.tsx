@@ -5,11 +5,12 @@ import { usePathname } from "next/navigation";
 import IncidentReportDialog from "./IncidentReportDialog";
 import { useVenueContext } from "../context/VenueContext";
 
-const PAGE_TITLES: Record<string, string> = {
-  "/venue/incidents": "Incidents",
-  "/venue/capacity":  "Headcount",
-  "/venue/offenders": "Offenders",
-  "/venue/account":   "Account",
+const SUB_PAGE_TITLES: Record<string, string> = {
+  incidents:   "Incidents",
+  capacity:    "Headcount",
+  offenders:   "Offenders",
+  account:     "Account",
+  preferences: "Venue Preferences",
 };
 
 export default function TopBar() {
@@ -17,7 +18,10 @@ export default function TopBar() {
   const { selectedVenue } = useVenueContext();
   const [reportOpen, setReportOpen] = useState(false);
 
-  const title = PAGE_TITLES[pathname];
+  // Pathname is /venue/[id]/subpage — extract the third segment
+  const segments = pathname.split("/").filter(Boolean);
+  const subPage = segments[2];
+  const title = subPage ? SUB_PAGE_TITLES[subPage] : null;
 
   // Don't render on the dashboard
   if (!title) return null;
