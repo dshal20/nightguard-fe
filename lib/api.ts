@@ -541,6 +541,19 @@ export async function updateSubscriptionLevel(
   return res.json();
 }
 
+export async function uploadFile(token: string, file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetch(`${API_URL}/upload`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
+  if (!res.ok) throw new Error("Failed to upload file");
+  const data = await res.json();
+  return data.url;
+}
+
 export async function unsubscribeFromVenue(
   token: string,
   venueId: string,
