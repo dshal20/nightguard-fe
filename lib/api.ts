@@ -295,6 +295,7 @@ export interface UpdateIncidentRequest {
   description?: string;
   keywords?: string[];
   offenderIds?: string[];
+  mediaUrls?: string[];
 }
 
 export async function updateIncident(
@@ -599,4 +600,53 @@ export async function unsubscribeFromVenue(
     { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
   );
   if (!res.ok) throw new Error("Failed to unsubscribe");
+}
+
+// --- Offender Comments ---
+
+export interface OffenderCommentResponse {
+  id: string;
+  offenderId: string;
+  author: UserProfile;
+  comment: string;
+  createdAt: string;
+}
+
+export async function getOffenderComments(
+  token: string,
+  offenderId: string,
+): Promise<OffenderCommentResponse[]> {
+  const res = await fetch(`${API_URL}/offenders/${offenderId}/comments`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch offender comments");
+  return res.json();
+}
+
+export async function createOffenderComment(
+  token: string,
+  offenderId: string,
+  comment: string,
+): Promise<OffenderCommentResponse> {
+  const res = await fetch(`${API_URL}/offenders/${offenderId}/comments`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ comment }),
+  });
+  if (!res.ok) throw new Error("Failed to create offender comment");
+  return res.json();
+}
+
+export async function deleteOffenderComment(
+  token: string,
+  commentId: string,
+): Promise<void> {
+  const res = await fetch(`${API_URL}/offender-comments/${commentId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to delete offender comment");
 }

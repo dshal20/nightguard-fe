@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Ban, ShieldX, X, ChevronLeft, ChevronRight, Pencil, Plus, Loader2 } from "lucide-react";
+import { Ban, ShieldX, X, ChevronLeft, ChevronRight, Pencil, Plus, Loader2, Trash2, Send } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { auth } from "@/app/src/lib/firebase";
-import { updateOffender, uploadFile } from "@/lib/api";
+import { updateOffender, uploadFile, createOffenderComment, deleteOffenderComment } from "@/lib/api";
 import type { OffenderResponse } from "@/lib/api";
 import { ColorTag, severityVariant } from "@/components/ui/color-tag";
 import {
@@ -27,7 +27,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useOffenderIncidentsQuery } from "@/lib/queries";
+import { useOffenderIncidentsQuery, useOffenderCommentsQuery } from "@/lib/queries";
 
 
 function formatType(type: string) {
@@ -146,6 +146,13 @@ export default function OffenderDetailModal({ offender, onClose, initialEditing 
   const [saveError, setSaveError] = useState(false);
 
   const { data: incidents = [], isLoading: incidentsLoading } = useOffenderIncidentsQuery(offender?.id);
+  const { data: comments = [], isLoading: commentsLoading } = useOffenderCommentsQuery(offender?.id);
+
+  const [commentText, setCommentText] = useState("");
+  const [submittingComment, setSubmittingComment] = useState(false);
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
+
+  const currentUserId = auth.currentUser?.uid;
 
   const photos = offender?.photoUrls ?? [];
 
@@ -240,6 +247,33 @@ export default function OffenderDetailModal({ offender, onClose, initialEditing 
       setSaveError(true);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handlePostComment() {
+    if (!offender || !commentText.trim()) return;
+    setSubmittingComment(true);
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) return;
+      await createOffenderComment(token, offender.id, commentText.trim());
+      setCommentText("");
+      await queryClient.invalidateQueries({ queryKey: ["offenderComments", offender.id] });
+    } finally {
+      setSubmittingComment(false);
+    }
+  }
+
+  async function handleDeleteComment(commentId: string) {
+    if (!offender) return;
+    setDeletingCommentId(commentId);
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) return;
+      await deleteOffenderComment(token, commentId);
+      await queryClient.invalidateQueries({ queryKey: ["offenderComments", offender.id] });
+    } finally {
+      setDeletingCommentId(null);
     }
   }
 
@@ -390,6 +424,85 @@ export default function OffenderDetailModal({ offender, onClose, initialEditing 
                         ))}
                       </div>
                     )}
+                  </div>
+
+                  {/* Comments */}
+                  <div>
+                    <p className={labelClass}>Comments</p>
+
+                    {/* Existing comments */}
+                    {commentsLoading ? (
+                      <div className="space-y-2">
+                        {[0, 1].map((i) => (
+                          <div key={i} className="rounded-lg border border-[#2A2A34] bg-[#0F0F19] p-3 space-y-1.5">
+                            <Skeleton className="h-3 w-28 rounded bg-[#26262F]" />
+                            <Skeleton className="h-3 w-full rounded bg-[#1E1E2C]" />
+                          </div>
+                        ))}
+                      </div>
+                    ) : comments.length === 0 ? (
+                      <p className="mb-3 text-sm text-[#4A4A5A]">No comments yet.</p>
+                    ) : (
+                      <div className="mb-3 space-y-2">
+                        {comments.map((c) => (
+                          <div key={c.id} className="group relative rounded-lg border border-[#2A2A34] bg-[#0F0F19] px-3 py-2.5">
+                            <div className="mb-1 flex items-center justify-between gap-2">
+                              <span className="text-[11px] font-semibold text-[#8B8B9D]">
+                                {c.author.firstName ?? ""} {c.author.lastName ?? ""}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] text-[#4A4A5A]">
+                                  {new Date(c.createdAt).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}
+                                </span>
+                                {c.author.id === currentUserId && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteComment(c.id)}
+                                    disabled={deletingCommentId === c.id}
+                                    className="flex h-5 w-5 items-center justify-center rounded text-[#4A4A5A] opacity-0 transition hover:text-[#E84868] group-hover:opacity-100 disabled:opacity-50"
+                                  >
+                                    {deletingCommentId === c.id
+                                      ? <Loader2 className="h-3 w-3 animate-spin" />
+                                      : <Trash2 className="h-3 w-3" />
+                                    }
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                            <p className="text-sm text-[#DDDBDB]">{c.comment}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Add comment */}
+                    <div className="flex gap-2">
+                      <textarea
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            handlePostComment();
+                          }
+                        }}
+                        rows={2}
+                        placeholder="Add a comment…"
+                        disabled={submittingComment}
+                        className="flex-1 resize-none rounded-md border border-[#2A2A34] bg-[#0F0F19] px-3 py-2 text-sm text-[#E2E2E2] placeholder:text-[#3B3B5A] focus:outline-none focus:ring-1 focus:ring-[#3B3B5A] disabled:opacity-50"
+                      />
+                      <button
+                        type="button"
+                        onClick={handlePostComment}
+                        disabled={submittingComment || !commentText.trim()}
+                        className="flex h-auto w-9 shrink-0 items-center justify-center self-stretch rounded-md border border-[#2A2A34] bg-[#0F0F19] text-[#8B8B9D] transition hover:border-[#3B3B5A] hover:text-white disabled:opacity-40"
+                      >
+                        {submittingComment
+                          ? <Loader2 className="h-4 w-4 animate-spin" />
+                          : <Send className="h-4 w-4" />
+                        }
+                      </button>
+                    </div>
                   </div>
 
                   {/* Actions */}
