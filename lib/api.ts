@@ -87,6 +87,7 @@ export interface CreateIncidentRequest {
   description: string;
   keywords: string[];
   offenderIds?: string[];
+  mediaUrls?: string[];
 }
 
 export type IncidentStatus = "ACTIVE" | "COMPLETED";
@@ -101,6 +102,7 @@ export interface IncidentResponse {
   description: string;
   keywords: string[];
   offenderIds: string[];
+  mediaUrls: string[];
   createdAt: string;
   updatedAt: string;
 }

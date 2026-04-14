@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { auth } from "@/app/src/lib/firebase";
 import { getOffender } from "@/lib/api";
@@ -12,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { User, Building2, ArrowUpRight } from "lucide-react";
+import { User, Building2, ArrowUpRight, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { ColorTag, severityVariant } from "@/components/ui/color-tag";
 
 // Looser shape so the modal works with both IncidentResponse (has reporter)
@@ -99,11 +100,25 @@ interface Props {
   sourceVenueName?: string;
 }
 
+function isVideoUrl(url: string) {
+  return /\.(mp4|mov|webm|ogg)(\?|$)/i.test(url);
+}
+
 export default function IncidentDetailModal({ incident, onClose, sourceVenueName }: Props) {
   const reporter = incident?.reporter;
   const reporterName = [reporter?.firstName, reporter?.lastName].filter(Boolean).join(" ");
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const imageUrls = (incident?.mediaUrls ?? []).filter((u) => !isVideoUrl(u));
+
+  useEffect(() => {
+    setLightboxIndex(null);
+  }, [incident?.id]);
+
+  const lb = lightboxIndex;
 
   return (
+    <>
     <Dialog open={!!incident} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="border-[#2A2A34] bg-[#11111D] text-[#DDDBDB] sm:max-w-md">
         <DialogHeader>
@@ -153,6 +168,37 @@ export default function IncidentDetailModal({ incident, onClose, sourceVenueName
               </div>
             )}
 
+            {/* Media */}
+            {incident.mediaUrls?.length > 0 && (
+              <div>
+                <p className="mb-1.5 text-[10px] font-bold uppercase text-[#8B8B9D]">
+                  Media ({incident.mediaUrls.length})
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {incident.mediaUrls.map((url, i) =>
+                    isVideoUrl(url) ? (
+                      <video
+                        key={i}
+                        src={url}
+                        controls
+                        className="max-h-40 rounded-md border border-[#2A2A34]"
+                      />
+                    ) : (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setLightboxIndex(imageUrls.indexOf(url))}
+                        className="h-16 w-16 shrink-0 overflow-hidden rounded-md border border-[#2A2A34] hover:opacity-80 transition"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={url} alt="" className="h-full w-full object-cover" />
+                      </button>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Reporter row — shown for own-venue incidents */}
             {!sourceVenueName && reporter && (
               <div>
@@ -196,5 +242,58 @@ export default function IncidentDetailModal({ incident, onClose, sourceVenueName
         )}
       </DialogContent>
     </Dialog>
+
+    {lb !== null &&
+      imageUrls.length > 0 &&
+      createPortal(
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90"
+          onClick={() => setLightboxIndex(null)}
+        >
+          <button
+            type="button"
+            onClick={() => setLightboxIndex(null)}
+            className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          {imageUrls.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxIndex((prev) => (prev! - 1 + imageUrls.length) % imageUrls.length);
+                }}
+                className="absolute left-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxIndex((prev) => (prev! + 1) % imageUrls.length);
+                }}
+                className="absolute right-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+              <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-white/60">
+                {lb + 1} / {imageUrls.length}
+              </p>
+            </>
+          )}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={imageUrls[lb]}
+            alt=""
+            className="max-h-[85vh] max-w-[90vw] rounded-lg object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>,
+        document.body
+      )}
+    </>
   );
 }
