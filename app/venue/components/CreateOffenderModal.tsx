@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ImagePlus, Loader2, Upload, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { auth } from "@/app/src/lib/firebase";
@@ -23,21 +23,36 @@ interface Props {
   venueId: string;
   onClose: () => void;
   onCreated: (offender: OffenderResponse) => void;
+  initialValues?: { firstName?: string; lastName?: string };
 }
 
-export default function CreateOffenderModal({ open, venueId, onClose, onCreated }: Props) {
+export default function CreateOffenderModal({ open, venueId, onClose, onCreated, initialValues }: Props) {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState<Omit<CreateOffenderRequest, "venueId">>({
-    firstName: "",
-    lastName: "",
+    firstName: initialValues?.firstName ?? "",
+    lastName: initialValues?.lastName ?? "",
     physicalMarkers: "",
     notes: "",
   });
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setForm({
+        firstName: initialValues?.firstName ?? "",
+        lastName: initialValues?.lastName ?? "",
+        physicalMarkers: "",
+        notes: "",
+      });
+      setImages([]);
+      setError(null);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   function handleClose() {
     setForm({ firstName: "", lastName: "", physicalMarkers: "", notes: "" });

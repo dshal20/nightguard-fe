@@ -10,7 +10,7 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
-import { ChevronUp, ChevronDown, ChevronsUpDown, Search } from "lucide-react";
+import { ChevronUp, ChevronDown, ChevronsUpDown, Search, Eye } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,8 @@ import {
 import { useVenueContext } from "../../context/VenueContext";
 import { usePatronLogsQuery } from "@/lib/queries";
 import type { PatronLogResponse } from "@/lib/api";
+import PatronLogDetailModal from "../../components/PatronLogDetailModal";
+import { Button } from "@/components/ui/button";
 
 dayjs.extend(relativeTime);
 
@@ -48,6 +50,7 @@ export default function LogsPage() {
   const { data: logs = [], isLoading } = usePatronLogsQuery(selectedVenue?.id);
   const [globalFilter, setGlobalFilter] = useState("");
   const [sorting, setSorting] = useState<SortingState>([{ id: "createdAt", desc: true }]);
+  const [selectedLog, setSelectedLog] = useState<PatronLogResponse | null>(null);
 
   const columns = useMemo<ColumnDef<PatronLogResponse>[]>(() => [
     {
@@ -142,6 +145,19 @@ export default function LogsPage() {
         </span>
       ),
     },
+    {
+      id: "actions",
+      header: "",
+      cell: ({ row }) => (
+        <Button
+          size="icon-sm"
+          onClick={() => setSelectedLog(row.original)}
+          className="border border-primary bg-primary/50 text-white hover:bg-primary/70"
+        >
+          <Eye className="h-3.5 w-3.5" />
+        </Button>
+      ),
+    },
   ], []);
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -219,6 +235,11 @@ export default function LogsPage() {
           </div>
         )}
       </div>
+
+      <PatronLogDetailModal
+        log={selectedLog}
+        onClose={() => setSelectedLog(null)}
+      />
     </div>
   );
 }
