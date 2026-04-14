@@ -11,7 +11,7 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
-import { ChevronUp, ChevronDown, ChevronsUpDown, Search, Eye } from "lucide-react";
+import { ChevronUp, ChevronDown, ChevronsUpDown, Search, Eye, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -56,9 +56,14 @@ function OffendersTableInner() {
   const [sorting, setSorting] = useState<SortingState>([{ id: "createdAt", desc: true }]);
 
   const selected = offenders.find((o) => o.id === searchParams.get("id")) ?? null;
+  const [editingOffender, setEditingOffender] = useState<OffenderResponse | null>(null);
 
   function handleClose() {
-    router.replace("?", { scroll: false });
+    if (editingOffender) {
+      setEditingOffender(null);
+    } else {
+      router.replace("?", { scroll: false });
+    }
   }
 
   const columns = useMemo<ColumnDef<OffenderResponse>[]>(() => [
@@ -156,16 +161,25 @@ function OffendersTableInner() {
       id: "actions",
       header: "",
       cell: ({ row }) => (
-        <Button
-          size="icon-sm"
-          onClick={() => router.replace(`?id=${row.original.id}`, { scroll: false })}
-          className="border border-primary bg-primary/50 text-white hover:bg-primary/70"
-        >
-          <Eye className="h-3.5 w-3.5" />
-        </Button>
+        <div className="flex items-center gap-2.5">
+          <Button
+            size="icon-sm"
+            onClick={() => router.replace(`?id=${row.original.id}`, { scroll: false })}
+            className="border border-primary bg-primary/50 text-white hover:bg-primary/70"
+          >
+            <Eye className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            size="icon-sm"
+            onClick={() => setEditingOffender(row.original)}
+            className="border border-primary bg-transparent text-primary hover:bg-primary/10"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
+        </div>
       ),
     },
-  ], [router]);
+  ], [router, setEditingOffender]);
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
@@ -241,7 +255,11 @@ function OffendersTableInner() {
         )}
       </div>
 
-      <OffenderDetailModal offender={selected} onClose={handleClose} />
+      <OffenderDetailModal
+        offender={editingOffender ?? selected}
+        initialEditing={!!editingOffender}
+        onClose={handleClose}
+      />
     </>
   );
 }

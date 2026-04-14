@@ -108,6 +108,7 @@ function IssueActionDialog({ open, type, offenderName, onConfirm, onCancel }: Is
 interface Props {
   offender: OffenderResponse | null;
   onClose: () => void;
+  initialEditing?: boolean;
 }
 
 type EditForm = {
@@ -130,7 +131,7 @@ function buildForm(o: OffenderResponse): EditForm {
   };
 }
 
-export default function OffenderDetailModal({ offender, onClose }: Props) {
+export default function OffenderDetailModal({ offender, onClose, initialEditing = false }: Props) {
   const queryClient = useQueryClient();
   const photoInputRef = useRef<HTMLInputElement>(null);
 
@@ -151,13 +152,14 @@ export default function OffenderDetailModal({ offender, onClose }: Props) {
   // Reset state whenever the displayed offender changes
   useEffect(() => {
     setLightboxIndex(null);
-    setEditing(false);
+    setEditing(initialEditing);
     setSaveError(false);
     if (offender) {
       setForm(buildForm(offender));
       setEditPhotos(offender.photoUrls ?? []);
       setNewFiles([]);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [offender?.id]);
 
   // Clean up blob URLs when component unmounts or files change
