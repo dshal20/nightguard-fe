@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { Ban, ShieldX, X, ChevronLeft, ChevronRight, Pencil, Plus, Loader2, Trash2, Send } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { auth } from "@/app/src/lib/firebase";
-import { updateOffender, uploadFile, createOffenderComment, deleteOffenderComment } from "@/lib/api";
+import { updateOffender, uploadFile, createOffenderComment, deleteOffenderComment, issueOffenderBan } from "@/lib/api";
 import type { OffenderResponse } from "@/lib/api";
 import Link from "next/link";
 import { ColorTag, severityVariant } from "@/components/ui/color-tag";
@@ -184,9 +184,20 @@ export default function OffenderDetailModal({ offender, onClose, initialEditing 
   function prevPhoto() { setLightboxIndex((i) => (i != null ? (i - 1 + photos.length) % photos.length : 0)); }
   function nextPhoto() { setLightboxIndex((i) => (i != null ? (i + 1) % photos.length : 0)); }
 
-  function handleConfirmAction(expiresAt: string | null) {
-    console.log(`${pendingAction} issued for ${offender?.id}, expires: ${expiresAt ?? "never"}`);
-    setPendingAction(null);
+  async function handleConfirmAction(expiresAt: string | null) {
+    if (!offender || !pendingAction) return;
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) return;
+      await issueOffenderBan(token, offender.id, {
+        type: pendingAction === "ban" ? "BAN" : "TRESPASS",
+        expiresAt: expiresAt || null,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["offenders"] });
+      await queryClient.invalidateQueries({ queryKey: ["offenderBans", offender.id] });
+    } finally {
+      setPendingAction(null);
+    }
   }
 
   function startEditing() {
