@@ -8,6 +8,7 @@ export interface UserProfile {
   lastName: string | null;
   email: string | null;
   phoneNumber: string | null;
+  profileUrl: string | null;
   role: UserRole;
 }
 
@@ -37,6 +38,7 @@ export interface UpdateProfilePayload {
   lastName?: string;
   email?: string;
   phoneNumber?: string;
+  profileUrl?: string;
 }
 
 export type IncidentType =
