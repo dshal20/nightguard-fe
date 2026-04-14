@@ -127,12 +127,12 @@ export default function VenueAccountPage() {
 
       <form onSubmit={handleSave} className="space-y-8">
         {/* Profile Photo */}
-        <section className="rounded-xl border border-white/[0.07] bg-[#11111B] p-6">
-          <div className="mb-5 flex items-center gap-2.5">
+        <section className="rounded-xl border border-white/[0.07] bg-[#11111B]">
+          <div className="flex items-center gap-2.5 border-b border-white/[0.06] px-6 py-4">
             <Camera className="h-4 w-4 text-[#555568]" />
             <h2 className="text-sm font-bold text-[#DDDBDB]">Profile Photo</h2>
           </div>
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-5 p-6">
             <button
               type="button"
               onClick={() => photoInputRef.current?.click()}
@@ -170,12 +170,12 @@ export default function VenueAccountPage() {
         </section>
 
         {/* Personal Info */}
-        <section className="rounded-xl border border-white/[0.07] bg-[#11111B] p-6">
-          <div className="mb-5 flex items-center gap-2.5">
+        <section className="rounded-xl border border-white/[0.07] bg-[#11111B]">
+          <div className="flex items-center gap-2.5 border-b border-white/[0.06] px-6 py-4">
             <User className="h-4 w-4 text-[#555568]" />
             <h2 className="text-sm font-bold text-[#DDDBDB]">Personal Info</h2>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-4 p-6">
             <div className="grid grid-cols-2 gap-4">
               <Field label="First Name" name="firstName" value={form.firstName} onChange={set("firstName")} placeholder="e.g. Alex" />
               <Field label="Last Name" name="lastName" value={form.lastName} onChange={set("lastName")} placeholder="e.g. Smith" />
@@ -186,25 +186,25 @@ export default function VenueAccountPage() {
         </section>
 
         {/* Role & Venue — read-only */}
-        <section className="rounded-xl border border-white/[0.07] bg-[#11111B] p-6">
-          <div className="mb-5 flex items-center gap-2.5">
+        <section className="rounded-xl border border-white/[0.07] bg-[#11111B]">
+          <div className="flex items-center gap-2.5 border-b border-white/[0.06] px-6 py-4">
             <User className="h-4 w-4 text-[#555568]" />
             <h2 className="text-sm font-bold text-[#DDDBDB]">Access</h2>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 p-6">
             <Field label="Role" name="role" value={roleLabel} readOnly />
             <Field label="Venue" name="venue" value={venue?.name ?? "—"} readOnly />
           </div>
         </section>
 
         {/* Save row */}
-        <div className="flex items-center gap-3">
-          <Button type="submit" size="sm" className="h-8 gap-1.5 border border-primary bg-primary/50 px-4 text-white hover:bg-primary/70">
+        <div className="space-y-2">
+          <Button type="submit" size="sm" className="h-10 w-full gap-1.5 border border-primary bg-primary/50 px-4 text-white hover:bg-primary/70">
             <Save className="h-3.5 w-3.5" />
             Save Changes
           </Button>
-          {saved && <p className="text-xs text-[#75FB94]">Changes saved.</p>}
-          {saveError && <p className="text-xs text-red-400">Failed to save changes.</p>}
+          {saved && <p className="text-center text-xs text-[#75FB94]">Changes saved.</p>}
+          {saveError && <p className="text-center text-xs text-red-400">Failed to save changes.</p>}
         </div>
       </form>
 
@@ -214,7 +214,7 @@ export default function VenueAccountPage() {
           type="button"
           size="sm"
           onClick={handleLogout}
-          className="h-8 gap-1.5 border border-white/10 bg-white/5 px-4 text-[#8B8B9D] hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-400"
+          className="h-10 w-full gap-1.5 border border-white/10 bg-white/5 px-4 text-[#8B8B9D] hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-400"
         >
           <LogOut className="h-3.5 w-3.5" />
           Log out
