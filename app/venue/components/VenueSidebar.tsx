@@ -10,7 +10,7 @@ import {
   Settings, User, ChevronsUpDown, Check, LogOut,
 } from "lucide-react";
 import { auth } from "../../src/lib/firebase";
-import { getMe } from "@/lib/api";
+import { getMe, type UserRole } from "@/lib/api";
 import { useVenueContext } from "../context/VenueContext";
 import {
   DropdownMenu,
@@ -26,22 +26,6 @@ type NavItem = {
   color: string;
   badge?: number;
 };
-
-const nav: NavItem[] = [
-  { label: "Dashboard",  href: "/venue",           icon: <House      className="h-3.75 w-3.75" />, color: "#2B36CD" },
-  { label: "Incidents",  href: "/venue/incidents",  icon: <ShieldAlert className="h-3.75 w-3.75" />, color: "#E84868" },
-  { label: "Capacity",   href: "/venue/capacity",   icon: <Users      className="h-3.75 w-3.75" />, color: "#75FB94" },
-  { label: "Offenders",  href: "/venue/offenders",  icon: <FileUser   className="h-3.75 w-3.75" />, color: "#DBA940" },
-  { label: "Staff",      href: "#",                 icon: <Users      className="h-3.75 w-3.75" />, color: "#8B8B9D" },
-];
-const network: NavItem[] = [
-  { label: "Network Alerts", href: "#", icon: <Megaphone className="h-3.75 w-3.75" />, color: "#DBA940" },
-  { label: "Nearby Venues",  href: "#", icon: <MapPin    className="h-3.75 w-3.75" />, color: "#2B36CD" },
-];
-const settings: NavItem[] = [
-  { label: "Venue Preferences", href: "/venue/preferences", icon: <Settings className="h-3.75 w-3.75" />, color: "#8B8B9D" },
-  { label: "Account",     href: "/venue/account", icon: <User     className="h-3.75 w-3.75" />, color: "#8B8B9D" },
-];
 
 function NavGroup({
   items,
@@ -118,7 +102,26 @@ export default function VenueSidebar({
   const router = useRouter();
   const pathname = usePathname();
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const [profileUrl, setProfileUrl] = useState<string | null>(null);
+  const [role, setRole] = useState<UserRole | null>(null);
   const { venues, selectedVenue, setSelectedVenue, loading: venuesLoading } = useVenueContext();
+
+  const id = selectedVenue?.id ?? null;
+  const nav: NavItem[] = [
+    { label: "Dashboard",  href: id ? `/venue/${id}` : "#",             icon: <House      className="h-3.75 w-3.75" />, color: "#2B36CD" },
+    { label: "Incidents",  href: id ? `/venue/${id}/incidents` : "#",   icon: <ShieldAlert className="h-3.75 w-3.75" />, color: "#E84868" },
+    { label: "Capacity",   href: id ? `/venue/${id}/capacity` : "#",    icon: <Users      className="h-3.75 w-3.75" />, color: "#75FB94" },
+    { label: "Offenders",  href: id ? `/venue/${id}/offenders` : "#",   icon: <FileUser   className="h-3.75 w-3.75" />, color: "#DBA940" },
+    { label: "Staff",      href: "#",                                    icon: <Users      className="h-3.75 w-3.75" />, color: "#8B8B9D" },
+  ];
+  const network: NavItem[] = [
+    { label: "Network Alerts", href: "#", icon: <Megaphone className="h-3.75 w-3.75" />, color: "#DBA940" },
+    { label: "Nearby Venues",  href: "#", icon: <MapPin    className="h-3.75 w-3.75" />, color: "#2B36CD" },
+  ];
+  const settings: NavItem[] = [
+    { label: "Venue Preferences", href: id ? `/venue/${id}/preferences` : "#", icon: <Settings className="h-3.75 w-3.75" />, color: "#8B8B9D" },
+    { label: "Account",           href: id ? `/venue/${id}/account` : "#",      icon: <User     className="h-3.75 w-3.75" />, color: "#8B8B9D" },
+  ];
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
@@ -131,6 +134,8 @@ export default function VenueSidebar({
         } else {
           setDisplayName(user.email?.split("@")[0] ?? "User");
         }
+        setProfileUrl(profile.profileUrl ?? null);
+        setRole(profile.role);
       } catch {
         setDisplayName(user.email?.split("@")[0] ?? "User");
       }
@@ -219,14 +224,23 @@ export default function VenueSidebar({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-[#13131F] focus:outline-none">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#262B75] text-xs font-bold text-white">
-                {displayName?.[0]?.toUpperCase() ?? "U"}
+              <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-[#262B75]">
+                {profileUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={profileUrl} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="flex h-full w-full items-center justify-center text-xs font-bold text-white">
+                    {displayName?.[0]?.toUpperCase() ?? "U"}
+                  </span>
+                )}
               </div>
               <div className="min-w-0 flex-1 text-left">
                 <p className="truncate text-sm font-bold text-[#DDDBDB]">
                   {displayName ?? "…"}
                 </p>
-                <p className="text-[10px] text-[#6B6B7D]">Venue Manager</p>
+                <p className="text-[10px] text-[#6B6B7D]">
+                  {role === "ADMIN" ? "Admin" : role === "USER" ? "Venue Member" : "…"}
+                </p>
               </div>
               <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-[#6B6B7D]" />
             </button>
