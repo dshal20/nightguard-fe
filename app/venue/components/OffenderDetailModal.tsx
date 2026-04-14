@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { auth } from "@/app/src/lib/firebase";
 import { updateOffender, uploadFile, createOffenderComment, deleteOffenderComment } from "@/lib/api";
 import type { OffenderResponse } from "@/lib/api";
+import Link from "next/link";
 import { ColorTag, severityVariant } from "@/components/ui/color-tag";
 import {
   Dialog,
@@ -28,6 +29,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useOffenderIncidentsQuery, useOffenderCommentsQuery } from "@/lib/queries";
+import { useVenueContext } from "../context/VenueContext";
 
 
 function formatType(type: string) {
@@ -132,6 +134,7 @@ function buildForm(o: OffenderResponse): EditForm {
 }
 
 export default function OffenderDetailModal({ offender, onClose, initialEditing = false }: Props) {
+  const { selectedVenue } = useVenueContext();
   const queryClient = useQueryClient();
   const photoInputRef = useRef<HTMLInputElement>(null);
 
@@ -415,7 +418,12 @@ export default function OffenderDetailModal({ offender, onClose, initialEditing 
                     ) : (
                       <div className="space-y-2">
                         {incidents.map((inc) => (
-                          <div key={inc.id} className="flex items-center gap-3 rounded-lg border border-[#2A2A34] bg-[#0F0F19] px-3 py-2.5">
+                          <Link
+                            key={inc.id}
+                            href={`/venue/${selectedVenue?.id}/incidents?id=${inc.id}`}
+                            onClick={onClose}
+                            className="flex items-center gap-3 rounded-lg border border-[#2A2A34] bg-[#0F0F19] px-3 py-2.5 transition hover:border-[#3B3B5A] hover:bg-white/3"
+                          >
                             <p className="min-w-0 flex-1 truncate text-xs font-medium text-[#DDDBDB]">
                               {formatType(inc.type)}
                             </p>
@@ -423,7 +431,7 @@ export default function OffenderDetailModal({ offender, onClose, initialEditing 
                             <span className="shrink-0 text-[10px] text-[#4A4A5A]">
                               {formatDate(inc.createdAt)}
                             </span>
-                          </div>
+                          </Link>
                         ))}
                       </div>
                     )}
