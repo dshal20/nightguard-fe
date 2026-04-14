@@ -265,21 +265,9 @@ export default function OffenderDetailModal({ offender, onClose, initialEditing 
       <Dialog open={!!offender} onOpenChange={(v) => { if (!v) onClose(); }}>
         <DialogContent className="max-h-[90vh] overflow-y-auto border-[#2A2A34] bg-[#11111D] text-[#DDDBDB] sm:max-w-md">
           <DialogHeader>
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-base font-bold text-[#E2E2E2]">
-                Offender Profile
-              </DialogTitle>
-              {offender && !editing && (
-                <button
-                  type="button"
-                  onClick={startEditing}
-                  className="flex items-center gap-1.5 rounded-md border border-[#2A2A34] bg-transparent px-2.5 py-1.5 text-[10px] font-medium text-[#8B8B9D] transition hover:bg-white/5 hover:text-white"
-                >
-                  <Pencil className="h-3 w-3" />
-                  Edit
-                </button>
-              )}
-            </div>
+            <DialogTitle className="text-base font-bold text-[#E2E2E2]">
+              Offender Profile
+            </DialogTitle>
           </DialogHeader>
 
           {offender && (
@@ -405,22 +393,32 @@ export default function OffenderDetailModal({ offender, onClose, initialEditing 
                   </div>
 
                   {/* Actions */}
-                  <div className="flex gap-2 border-t border-[#2A2A34] pt-4">
+                  <div className="flex flex-col gap-2 border-t border-[#2A2A34] pt-4">
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        onClick={() => setPendingAction("ban")}
+                        className="flex-1 gap-2 border border-[#6B2233] bg-[#E84868]/10 text-[#E84868] hover:border-[#E84868]/50 hover:bg-[#E84868]/20 hover:text-[#E84868]"
+                      >
+                        <Ban className="h-4 w-4" />
+                        Issue Ban
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => setPendingAction("trespass")}
+                        className="flex-1 gap-2 border border-[#6B5320] bg-[#DBA940]/10 text-[#DBA940] hover:border-[#DBA940]/50 hover:bg-[#DBA940]/20 hover:text-[#DBA940]"
+                      >
+                        <ShieldX className="h-4 w-4" />
+                        Issue Trespass
+                      </Button>
+                    </div>
                     <Button
                       type="button"
-                      onClick={() => setPendingAction("ban")}
-                      className="flex-1 gap-2 border border-[#6B2233] bg-[#E84868]/10 text-[#E84868] hover:border-[#E84868]/50 hover:bg-[#E84868]/20 hover:text-[#E84868]"
+                      onClick={startEditing}
+                      className="w-full gap-2 border border-[#2A2A34] bg-transparent text-[#8B8B9D] hover:bg-white/5 hover:text-white"
                     >
-                      <Ban className="h-4 w-4" />
-                      Issue Ban
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={() => setPendingAction("trespass")}
-                      className="flex-1 gap-2 border border-[#6B5320] bg-[#DBA940]/10 text-[#DBA940] hover:border-[#DBA940]/50 hover:bg-[#DBA940]/20 hover:text-[#DBA940]"
-                    >
-                      <ShieldX className="h-4 w-4" />
-                      Issue Trespass
+                      <Pencil className="h-3.5 w-3.5" />
+                      Edit Profile
                     </Button>
                   </div>
                 </>
