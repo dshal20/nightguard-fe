@@ -154,7 +154,8 @@ export default function OffenderDetailModal({ offender, onClose, initialEditing 
 
   const currentUserId = auth.currentUser?.uid;
 
-  const photos = offender?.photoUrls ?? [];
+  const [localPhotoUrls, setLocalPhotoUrls] = useState<string[]>(offender?.photoUrls ?? []);
+  const photos = localPhotoUrls;
 
   // Reset state whenever the displayed offender changes
   useEffect(() => {
@@ -164,6 +165,7 @@ export default function OffenderDetailModal({ offender, onClose, initialEditing 
     if (offender) {
       setForm(buildForm(offender));
       setEditPhotos(offender.photoUrls ?? []);
+      setLocalPhotoUrls(offender.photoUrls ?? []);
       setNewFiles([]);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -239,6 +241,7 @@ export default function OffenderDetailModal({ offender, onClose, initialEditing 
         photoUrls: allPhotoUrls,
       });
 
+      setLocalPhotoUrls(allPhotoUrls);
       await queryClient.invalidateQueries({ queryKey: ["offenders"] });
       setEditing(false);
       newFiles.forEach((f) => URL.revokeObjectURL(f.preview));
