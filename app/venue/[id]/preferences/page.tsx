@@ -201,7 +201,7 @@ export default function VenuePreferencesPage() {
       {tab === "settings" && (
         <form onSubmit={handleSave} className="space-y-8">
           <section className="rounded-xl border border-white/[0.07] bg-[#11111B]">
-            <div className="flex items-center gap-2.5 border-b border-white/[0.06] px-6 py-4">
+            <div className="flex items-center gap-2.5 border-b border-white/6 px-6 py-4">
               <Building2 className="h-4 w-4 text-[#555568]" />
               <h2 className="text-sm font-bold text-[#DDDBDB]">Venue Identity</h2>
             </div>
@@ -210,7 +210,7 @@ export default function VenuePreferencesPage() {
             <button
               type="button"
               onClick={() => imageInputRef.current?.click()}
-              className="group relative w-full overflow-hidden border-b border-white/[0.06] focus:outline-none"
+              className="group relative w-full overflow-hidden border-b border-white/6s:outline-none"
               style={{ height: imagePreview ? undefined : "140px" }}
             >
               {imagePreview ? (
@@ -251,7 +251,7 @@ export default function VenuePreferencesPage() {
           </section>
 
           <section className="rounded-xl border border-white/[0.07] bg-[#11111B]">
-            <div className="flex items-center gap-2.5 border-b border-white/[0.06] px-6 py-4">
+            <div className="flex items-center gap-2.5 border-b border-white/6 py-4">
               <MapPin className="h-4 w-4 text-[#555568]" />
               <h2 className="text-sm font-bold text-[#DDDBDB]">Address</h2>
             </div>
@@ -266,7 +266,7 @@ export default function VenuePreferencesPage() {
           </section>
 
           <section className="rounded-xl border border-white/[0.07] bg-[#11111B]">
-            <div className="flex items-center gap-2.5 border-b border-white/[0.06] px-6 py-4">
+            <div className="flex items-center gap-2.5 border-b border-white/6 px-6 py-4">
               <Key className="h-4 w-4 text-[#555568]" />
               <h2 className="text-sm font-bold text-[#DDDBDB]">Invite Code</h2>
             </div>
@@ -276,7 +276,7 @@ export default function VenuePreferencesPage() {
           </section>
 
           <section className="rounded-xl border border-white/[0.07] bg-[#11111B]">
-            <div className="flex items-center gap-2.5 border-b border-white/[0.06] px-6 py-4">
+            <div className="flex items-center gap-2.5 border-b border-white/6 px-6 py-4">
               <Share2 className="h-4 w-4 text-[#555568]" />
               <h2 className="text-sm font-bold text-[#DDDBDB]">Data Sharing</h2>
             </div>
@@ -321,7 +321,7 @@ export default function VenuePreferencesPage() {
 
           {/* Current subscriptions */}
           <section className="rounded-xl border border-white/[0.07] bg-[#11111B]">
-            <div className="flex items-center gap-2.5 border-b border-white/[0.06] px-6 py-4">
+            <div className="flex items-center gap-2.5 border-b border-white/6 px-6 py-4">
               <Bell className="h-4 w-4 text-[#555568]" />
               <h2 className="text-sm font-bold text-[#DDDBDB]">Current Subscriptions</h2>
               {subscriptions.length > 0 && (
@@ -337,7 +337,7 @@ export default function VenuePreferencesPage() {
             ) : (
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/[0.06] hover:bg-transparent">
+                  <TableRow className="border-white/6 hover:bg-transparent">
                     <TableHead className="text-[10px] font-bold uppercase text-[#555568]">Venue</TableHead>
                     <TableHead className="text-[10px] font-bold uppercase text-[#555568]">Address</TableHead>
                     <TableHead className="text-[10px] font-bold uppercase text-[#555568]">Location</TableHead>
@@ -350,7 +350,7 @@ export default function VenuePreferencesPage() {
                     const loading = pendingId === sub.venueId;
                     const levelLoading = pendingLevelId === sub.venueId;
                     return (
-                      <TableRow key={sub.id} className="border-white/[0.06] hover:bg-white/2">
+                      <TableRow key={sub.id} className="border-white/6r:bg-white/2">
                         <TableCell className="py-2.5 text-xs font-medium text-[#DDDBDB]">
                           {sub.name}
                         </TableCell>
@@ -367,7 +367,7 @@ export default function VenuePreferencesPage() {
                               value={sub.notificationLevel}
                               disabled={levelLoading}
                               onChange={(e) => handleLevelChange(sub.venueId, e.target.value as IncidentSeverity)}
-                              className="h-7 rounded border border-white/[0.08] bg-[#0D0D16] px-2 text-[11px] font-semibold text-[#DDDBDB] focus:outline-none disabled:opacity-50"
+                              className="h-7 rounded border border-white/8 bg-[#0D0D16] px-2 text-[11px] font-semibold text-[#DDDBDB] focus:outline-none disabled:opacity-50"
                             >
                               <option value="LOW">Low+</option>
                               <option value="MEDIUM">Medium+</option>
@@ -395,7 +395,7 @@ export default function VenuePreferencesPage() {
 
           {/* Search */}
           <section className="rounded-xl border border-white/[0.07] bg-[#11111B]">
-            <div className="flex items-center gap-2.5 border-b border-white/[0.06] px-6 py-4">
+            <div className="flex items-center gap-2.5 border-b border-white/6 px-6 py-4">
               <Search className="h-4 w-4 text-[#555568]" />
               <h2 className="text-sm font-bold text-[#DDDBDB]">Search Nearby Venues</h2>
             </div>
@@ -418,7 +418,7 @@ export default function VenuePreferencesPage() {
 
           {/* Results table */}
           <section className="rounded-xl border border-white/[0.07] bg-[#11111B]">
-            <div className="flex items-center gap-2.5 border-b border-white/[0.06] px-6 py-4">
+            <div className="flex items-center gap-2.5 border-b border-white/6 px-6 py-4">
               <MapPin className="h-4 w-4 text-[#555568]" />
               <h2 className="text-sm font-bold text-[#DDDBDB]">
                 Results — {committed.city}, {committed.state}
@@ -441,7 +441,7 @@ export default function VenuePreferencesPage() {
             {!loadingNearby && nearbyVenues.length > 0 && (
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/[0.06] hover:bg-transparent">
+                  <TableRow className="border-white/6 hover:bg-transparent">
                     <TableHead className="text-[10px] font-bold uppercase text-[#555568]">Venue</TableHead>
                     <TableHead className="text-[10px] font-bold uppercase text-[#555568]">Address</TableHead>
                     <TableHead className="text-[10px] font-bold uppercase text-[#555568]">Phone</TableHead>

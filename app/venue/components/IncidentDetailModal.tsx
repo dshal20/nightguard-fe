@@ -68,10 +68,19 @@ function OffenderRow({ id, onClose }: { id: string; onClose: () => void }) {
 
   if (!offender) return null;
 
+  const photo = offender.photoUrls?.[0];
+
   return (
     <div className="flex items-center gap-3 rounded-lg border border-[#2A2A34] bg-[#0F0F19] p-3">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#26262F] text-xs font-bold text-[#8B8B9D]">
-        {offender.firstName[0]}{offender.lastName[0]}
+      <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#26262F]">
+        {photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={photo} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center text-xs font-bold text-[#8B8B9D]">
+            {offender.firstName[0]}{offender.lastName[0]}
+          </span>
+        )}
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-xs font-bold text-[#DDDBDB]">
