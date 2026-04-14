@@ -22,6 +22,7 @@ export interface Venue {
   phoneNumber: string;
   inviteCode: string;
   dataSharingEnabled: boolean;
+  venueImageUrl: string | null;
 }
 
 export interface CreateVenueRequest {
@@ -116,6 +117,7 @@ export interface UpdateVenueRequest {
   state?: string;
   postalCode?: string;
   phoneNumber?: string;
+  venueImageUrl?: string;
 }
 
 export async function updateVenue(

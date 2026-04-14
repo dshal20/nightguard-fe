@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Building2, MapPin, Phone, Key, Save, Bell, BellOff, Loader2, Search, Share2 } from "lucide-react";
+import { Building2, MapPin, Phone, Key, Save, Bell, BellOff, Loader2, Search, Share2, ImageIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useVenueContext } from "../../context/VenueContext";
@@ -46,7 +46,7 @@ export default function VenuePreferencesPage() {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>("settings");
   const [form, setForm] = useState({
-    name: "", streetAddress: "", city: "", state: "", postalCode: "", phoneNumber: "",
+    name: "", streetAddress: "", city: "", state: "", postalCode: "", phoneNumber: "", venueImageUrl: "",
   });
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState(false);
@@ -65,6 +65,7 @@ export default function VenuePreferencesPage() {
       state:         selectedVenue.state,
       postalCode:    selectedVenue.postalCode,
       phoneNumber:   selectedVenue.phoneNumber,
+      venueImageUrl: selectedVenue.venueImageUrl ?? "",
     });
     const loc = { city: selectedVenue.city, state: selectedVenue.state, zip: selectedVenue.postalCode };
     setSearch(loc);
@@ -183,6 +184,7 @@ export default function VenuePreferencesPage() {
             <div className="space-y-4 p-6">
               <Field label="Venue Name" name="name" value={form.name} onChange={set("name")} placeholder="e.g. The Grand Ballroom" icon={<Building2 className="h-3.5 w-3.5" />} />
               <Field label="Phone Number" name="phoneNumber" value={form.phoneNumber} onChange={set("phoneNumber")} placeholder="e.g. +1 (555) 000-0000" icon={<Phone className="h-3.5 w-3.5" />} />
+              <Field label="Venue Image URL" name="venueImageUrl" value={form.venueImageUrl} onChange={set("venueImageUrl")} placeholder="https://..." icon={<ImageIcon className="h-3.5 w-3.5" />} />
             </div>
           </section>
 
