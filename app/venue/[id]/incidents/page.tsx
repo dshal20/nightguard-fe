@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   useReactTable,
   getCoreRowModel,
@@ -52,7 +53,9 @@ const thClass = "text-[10px] font-bold uppercase text-[#8B8B9D] cursor-pointer s
 export default function IncidentsPage() {
   const { selectedVenue } = useVenueContext();
   const { data: incidents = [], isLoading, isError } = useIncidentsQuery(selectedVenue?.id);
-  const [selected, setSelected] = useState<IncidentResponse | null>(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const selected = incidents.find((i) => i.id === searchParams.get("id")) ?? null;
   const [editing, setEditing]   = useState<IncidentResponse | null>(null);
   const [sorting, setSorting]   = useState<SortingState>([{ id: "updatedAt", desc: true }]);
 
@@ -131,7 +134,7 @@ export default function IncidentsPage() {
         <div className="flex items-center gap-2.5">
           <Button
             size="icon-sm"
-            onClick={() => setSelected(row.original)}
+            onClick={() => router.replace(`?id=${row.original.id}`, { scroll: false })}
             className="border border-primary bg-primary/50 text-white hover:bg-primary/70 ml-auto"
           >
             <Eye className="h-3.5 w-3.5" />
@@ -208,7 +211,7 @@ export default function IncidentsPage() {
         )}
       </div>
 
-      <IncidentDetailModal incident={selected} onClose={() => setSelected(null)} />
+      <IncidentDetailModal incident={selected} onClose={() => router.replace("?", { scroll: false })} />
       <EditIncidentModal   incident={editing}  onClose={() => setEditing(null)} />
     </>
   );
