@@ -239,24 +239,13 @@ export default function MarketingPage() {
                 "0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(75,91,232,0.1)",
             }}
           >
-            {/* Placeholder — swap src for a real screenshot */}
-            <div
-              className="flex h-[400px] items-center justify-center text-sm text-[#8B8B9D] md:h-[520px]"
-              style={{ background: "#11111B" }}
-            >
-              <div className="flex flex-col items-center gap-3 opacity-40">
-                <div className="h-16 w-16 rounded-2xl" style={{ background: "#1A1A26" }} />
-                <span>App screenshot</span>
-                <span className="text-xs">Replace with: /public/screenshot-dashboard.png</span>
-              </div>
-              {/* Uncomment and add your screenshot:
+            <div className="relative h-[400px] md:h-[520px]">
               <Image
                 src="/screenshot-dashboard.png"
                 alt="NightGuard dashboard"
                 fill
                 className="object-cover object-top"
               />
-              */}
             </div>
           </div>
           {/* bottom fade */}
@@ -319,15 +308,13 @@ export default function MarketingPage() {
               className="overflow-hidden rounded-2xl"
               style={{ border: "1px solid #1A1A26" }}
             >
-              <div
-                className="flex h-64 items-center justify-center text-sm text-[#8B8B9D] md:h-80"
-                style={{ background: "#11111B" }}
-              >
-                <div className="flex flex-col items-center gap-2 opacity-40">
-                  <div className="h-12 w-12 rounded-xl" style={{ background: "#1A1A26" }} />
-                  <span>Incident reporting screen</span>
-                  <span className="text-xs">Replace with: /public/screenshot-incidents.png</span>
-                </div>
+              <div className="relative h-64 md:h-80">
+                <Image
+                  src="/screenshot-incidents.png"
+                  alt="Incident reporting screen"
+                  fill
+                  className="object-cover object-top"
+                />
               </div>
               <div className="p-5" style={{ background: "#11111B", borderTop: "1px solid #1A1A26" }}>
                 <h4 className="mb-1 font-semibold text-[#DDDBDB]">Fast incident logging</h4>
@@ -342,15 +329,13 @@ export default function MarketingPage() {
               className="overflow-hidden rounded-2xl"
               style={{ border: "1px solid #1A1A26" }}
             >
-              <div
-                className="flex h-64 items-center justify-center text-sm text-[#8B8B9D] md:h-80"
-                style={{ background: "#11111B" }}
-              >
-                <div className="flex flex-col items-center gap-2 opacity-40">
-                  <div className="h-12 w-12 rounded-xl" style={{ background: "#1A1A26" }} />
-                  <span>Offender search screen</span>
-                  <span className="text-xs">Replace with: /public/screenshot-offenders.png</span>
-                </div>
+              <div className="relative h-64 md:h-80">
+                <Image
+                  src="/screenshot-offenders.png"
+                  alt="Offender search screen"
+                  fill
+                  className="object-cover object-top"
+                />
               </div>
               <div className="p-5" style={{ background: "#11111B", borderTop: "1px solid #1A1A26" }}>
                 <h4 className="mb-1 font-semibold text-[#DDDBDB]">Shared offender network</h4>
