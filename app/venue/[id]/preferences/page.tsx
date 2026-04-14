@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Building2, MapPin, Phone, Key, Save, Bell, BellOff, Loader2, Search, Share2, ImageIcon } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Building2, MapPin, Phone, Key, Save, Bell, BellOff, Loader2, Search, Share2, Camera } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useVenueContext } from "../../context/VenueContext";
 import { useNearbyVenuesQuery, useSubscriptionsQuery, useAuthToken } from "@/lib/queries";
-import { subscribeToVenues, unsubscribeFromVenue, updateDataSharing, updateSubscriptionLevel, updateVenue, type IncidentSeverity } from "@/lib/api";
+import { subscribeToVenues, unsubscribeFromVenue, updateDataSharing, updateSubscriptionLevel, updateVenue, uploadFile, type IncidentSeverity } from "@/lib/api";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -23,7 +23,7 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-[#555568]">
+      <label className="block text-[11px] font-semibold uppercase tracking-widest text-[#555568]">
         {label}
       </label>
       <div className="relative">
@@ -32,7 +32,7 @@ function Field({
           name={name} value={value}
           onChange={(e) => onChange?.(e.target.value)}
           placeholder={placeholder} readOnly={readOnly}
-          className={`border-white/[0.08] bg-[#0D0D16] text-[#DDDBDB] placeholder:text-[#2E2E3E] focus-visible:border-primary/50 focus-visible:ring-primary/20 ${icon ? "pl-9" : ""} ${readOnly ? "cursor-default select-all opacity-60" : ""}`}
+          className={`border-white/8 bg-[#0D0D16] text-[#DDDBDB] placeholder:text-[#2E2E3E] focus-visible:border-primary/50 focus-visible:ring-primary/20 ${icon ? "pl-9" : ""} ${readOnly ? "cursor-default select-all opacity-60" : ""}`}
         />
       </div>
       {hint && <p className="text-[10px] text-[#44445A]">{hint}</p>}
@@ -46,7 +46,7 @@ export default function VenuePreferencesPage() {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>("settings");
   const [form, setForm] = useState({
-    name: "", streetAddress: "", city: "", state: "", postalCode: "", phoneNumber: "", venueImageUrl: "",
+    name: "", streetAddress: "", city: "", state: "", postalCode: "", phoneNumber: "",
   });
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState(false);
@@ -55,6 +55,11 @@ export default function VenuePreferencesPage() {
   const [committed, setCommitted] = useState({ city: "", state: "", zip: "" });
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [pendingLevelId, setPendingLevelId] = useState<string | null>(null);
+
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageUploading, setImageUploading] = useState(false);
 
   useEffect(() => {
     if (!selectedVenue) return;
@@ -65,12 +70,23 @@ export default function VenuePreferencesPage() {
       state:         selectedVenue.state,
       postalCode:    selectedVenue.postalCode,
       phoneNumber:   selectedVenue.phoneNumber,
-      venueImageUrl: selectedVenue.venueImageUrl ?? "",
     });
+    setImagePreview(selectedVenue.venueImageUrl ?? null);
+    setImageFile(null);
     const loc = { city: selectedVenue.city, state: selectedVenue.state, zip: selectedVenue.postalCode };
     setSearch(loc);
     setCommitted(loc);
-  }, [selectedVenue?.id]);
+  }, [selectedVenue]);
+
+  function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    if (imagePreview?.startsWith("blob:")) URL.revokeObjectURL(imagePreview);
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+    setSaved(false);
+  }
 
   const { data: nearbyVenues = [], isLoading: loadingNearby } = useNearbyVenuesQuery(selectedVenue?.id, committed.city, committed.state, committed.zip || undefined);
   const { data: subscriptions = [] } = useSubscriptionsQuery(selectedVenue?.id);
@@ -87,11 +103,19 @@ export default function VenuePreferencesPage() {
     setSaved(false);
     setSaveError(false);
     try {
-      await updateVenue(token, selectedVenue.id, form);
+      let venueImageUrl: string | undefined = selectedVenue.venueImageUrl ?? undefined;
+      if (imageFile) {
+        setImageUploading(true);
+        venueImageUrl = await uploadFile(token, imageFile);
+        setImageFile(null);
+      }
+      await updateVenue(token, selectedVenue.id, { ...form, venueImageUrl });
       await refetch();
       setSaved(true);
     } catch {
       setSaveError(true);
+    } finally {
+      setImageUploading(false);
     }
   }
 
@@ -155,7 +179,7 @@ export default function VenuePreferencesPage() {
       </div>
 
       {/* Tabs */}
-      <div className="mb-8 flex gap-1 border-b border-white/[0.06]">
+      <div className="mb-8 flex gap-1 border-b border-white/6">
         {tabs.map(({ key, label }) => (
           <button
             key={key}
@@ -181,10 +205,48 @@ export default function VenuePreferencesPage() {
               <Building2 className="h-4 w-4 text-[#555568]" />
               <h2 className="text-sm font-bold text-[#DDDBDB]">Venue Identity</h2>
             </div>
+
+            {/* Venue image upload */}
+            <button
+              type="button"
+              onClick={() => imageInputRef.current?.click()}
+              className="group relative w-full overflow-hidden border-b border-white/[0.06] focus:outline-none"
+              style={{ height: imagePreview ? undefined : "140px" }}
+            >
+              {imagePreview ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={imagePreview}
+                  alt="Venue"
+                  className="w-full object-cover"
+                  style={{ maxHeight: "220px", minHeight: "140px" }}
+                />
+              ) : (
+                <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-[#0D0D16]">
+                  <Camera className="h-6 w-6 text-[#44445A]" />
+                  <span className="text-[11px] text-[#44445A]">Upload venue photo</span>
+                </div>
+              )}
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="flex items-center gap-2 rounded-lg border border-white/20 bg-black/60 px-3 py-2">
+                  <Camera className="h-4 w-4 text-white" />
+                  <span className="text-xs font-medium text-white">
+                    {imagePreview ? "Change photo" : "Upload photo"}
+                  </span>
+                </div>
+              </div>
+            </button>
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageSelect}
+            />
+
             <div className="space-y-4 p-6">
               <Field label="Venue Name" name="name" value={form.name} onChange={set("name")} placeholder="e.g. The Grand Ballroom" icon={<Building2 className="h-3.5 w-3.5" />} />
               <Field label="Phone Number" name="phoneNumber" value={form.phoneNumber} onChange={set("phoneNumber")} placeholder="e.g. +1 (555) 000-0000" icon={<Phone className="h-3.5 w-3.5" />} />
-              <Field label="Venue Image URL" name="venueImageUrl" value={form.venueImageUrl} onChange={set("venueImageUrl")} placeholder="https://..." icon={<ImageIcon className="h-3.5 w-3.5" />} />
             </div>
           </section>
 
@@ -243,9 +305,9 @@ export default function VenuePreferencesPage() {
           </section>
 
           <div className="space-y-2">
-            <Button type="submit" size="sm" className="h-10 w-full gap-1.5 border border-primary bg-primary/50 px-4 text-white hover:bg-primary/70">
-              <Save className="h-3.5 w-3.5" />
-              Save Changes
+            <Button type="submit" size="sm" disabled={imageUploading} className="h-10 w-full gap-1.5 border border-primary bg-primary/50 px-4 text-white hover:bg-primary/70 disabled:opacity-60">
+              {imageUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+              {imageUploading ? "Uploading photo…" : "Save Changes"}
             </Button>
             {saved && <p className="text-center text-xs text-[#75FB94]">Changes saved.</p>}
             {saveError && <p className="text-center text-xs text-red-400">Failed to save changes.</p>}
@@ -391,7 +453,7 @@ export default function VenuePreferencesPage() {
                     const subscribed = subscribedIds.has(venue.id);
                     const loading = pendingId === venue.id;
                     return (
-                      <TableRow key={venue.id} className="border-white/[0.06] hover:bg-white/2">
+                      <TableRow key={venue.id} className="border-white/6 hover:bg-white/2">
                         <TableCell className="py-2.5 text-xs font-medium text-[#DDDBDB]">{venue.name}</TableCell>
                         <TableCell className="py-2.5 text-xs text-[#555568]">{venue.streetAddress}, {venue.city}</TableCell>
                         <TableCell className="py-2.5 text-xs text-[#555568]">{venue.phoneNumber || "—"}</TableCell>
