@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useMemo, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   useReactTable,
   getCoreRowModel,
@@ -51,17 +51,15 @@ function OffendersTableInner() {
   const { selectedVenue } = useVenueContext();
   const { data: offenders = [], isLoading } = useOffendersQuery(selectedVenue?.id);
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [globalFilter, setGlobalFilter] = useState("");
   const [sorting, setSorting] = useState<SortingState>([{ id: "createdAt", desc: true }]);
-  const [selected, setSelected] = useState<OffenderResponse | null>(null);
 
-  // Auto-open modal when arriving via /offenders?id=xxx
-  useEffect(() => {
-    const id = searchParams.get("id");
-    if (!id || offenders.length === 0) return;
-    const match = offenders.find((o) => o.id === id);
-    if (match) setSelected(match);
-  }, [searchParams, offenders]);
+  const selected = offenders.find((o) => o.id === searchParams.get("id")) ?? null;
+
+  function handleClose() {
+    router.replace("?", { scroll: false });
+  }
 
   const columns = useMemo<ColumnDef<OffenderResponse>[]>(() => [
     {
@@ -160,14 +158,14 @@ function OffendersTableInner() {
       cell: ({ row }) => (
         <Button
           size="icon-sm"
-          onClick={() => setSelected(row.original)}
+          onClick={() => router.replace(`?id=${row.original.id}`, { scroll: false })}
           className="border border-primary bg-primary/50 text-white hover:bg-primary/70"
         >
           <Eye className="h-3.5 w-3.5" />
         </Button>
       ),
     },
-  ], []);
+  ], [router]);
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
@@ -243,7 +241,7 @@ function OffendersTableInner() {
         )}
       </div>
 
-      <OffenderDetailModal offender={selected} onClose={() => setSelected(null)} />
+      <OffenderDetailModal offender={selected} onClose={handleClose} />
     </>
   );
 }
