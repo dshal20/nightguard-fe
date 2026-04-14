@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import IncidentReportDialog from "./IncidentReportDialog";
+import CreateOffenderModal from "./CreateOffenderModal";
 
 interface VenueHeaderProps {
   venueId: string;
@@ -10,6 +11,7 @@ interface VenueHeaderProps {
 
 export default function VenueHeader({ venueId }: VenueHeaderProps) {
   const [reportOpen, setReportOpen] = useState(false);
+  const [offenderOpen, setOffenderOpen] = useState(false);
 
   return (
     <>
@@ -18,6 +20,14 @@ export default function VenueHeader({ venueId }: VenueHeaderProps) {
           Tonights Operations
         </h1>
         <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => setOffenderOpen(true)}
+            className="h-8 gap-1.5 border border-red-400/50 bg-red-400/10 px-3 text-red-400 hover:bg-red-400/15 hover:text-red-400"
+          >
+            + Add Offender
+          </Button>
           <Button
             type="button"
             size="sm"
@@ -40,6 +50,12 @@ export default function VenueHeader({ venueId }: VenueHeaderProps) {
         open={reportOpen}
         onOpenChange={setReportOpen}
         venueId={venueId}
+      />
+      <CreateOffenderModal
+        open={offenderOpen}
+        venueId={venueId}
+        onClose={() => setOffenderOpen(false)}
+        onCreated={() => setOffenderOpen(false)}
       />
     </>
   );
