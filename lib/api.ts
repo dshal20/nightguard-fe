@@ -379,6 +379,33 @@ export async function createOffender(
   return res.json();
 }
 
+export interface UpdateOffenderRequest {
+  firstName?: string;
+  lastName?: string;
+  physicalMarkers?: string;
+  riskScore?: number | null;
+  currentStatus?: string;
+  notes?: string;
+  photoUrls?: string[];
+}
+
+export async function updateOffender(
+  token: string,
+  id: string,
+  payload: UpdateOffenderRequest,
+): Promise<OffenderResponse> {
+  const res = await fetch(`${API_URL}/offenders/${id}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Failed to update offender");
+  return res.json();
+}
+
 export async function updateDataSharing(
   token: string,
   venueId: string,
