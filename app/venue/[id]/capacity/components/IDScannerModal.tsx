@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { Parse, type ParsedLicense } from "aamva-parser";
 import dayjs from "dayjs";
-import { X, CheckCircle2, XCircle } from "lucide-react";
+import { X, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 import { auth } from "../../../../src/lib/firebase";
 import { createPatronLog, type CreatePatronLogRequest } from "@/lib/api";
 
@@ -35,10 +35,12 @@ export default function IDScannerModal({
   open,
   onClose,
   venueId,
+  onAdmit,
 }: {
   open: boolean;
   onClose: () => void;
   venueId: string;
+  onAdmit?: () => void;
 }) {
   const [scanState, setScanState] = useState<ScanState>("idle");
   const [licenseData, setLicenseData] = useState<ParsedLicense | null>(null);
@@ -125,6 +127,7 @@ export default function IDScannerModal({
       };
 
       await createPatronLog(token, venueId, payload);
+      if (decision === "ADMITTED") onAdmit?.();
       setSubmitResult(decision);
       setTimeout(() => {
         reset();
@@ -137,6 +140,11 @@ export default function IDScannerModal({
   };
 
   const canScan = !!backPreview && (scanState === "idle" || scanState === "error");
+
+  const age = licenseData?.dateOfBirth
+    ? dayjs().diff(dayjs(licenseData.dateOfBirth), "year")
+    : null;
+  const isUnder21 = age !== null && age < 21;
 
   if (!open) return null;
 
@@ -195,6 +203,17 @@ export default function IDScannerModal({
 
           {scanState === "parsed" && licenseData && (
             <div className="space-y-4">
+              {isUnder21 && (
+                <div className="flex items-start gap-3 rounded-xl border border-[#DBA940]/40 bg-[#DBA940]/10 px-4 py-3">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#DBA940]" />
+                  <div>
+                    <p className="text-sm font-bold text-[#DBA940]">Under 21</p>
+                    <p className="text-xs text-[#DBA940]/80">
+                      This ID holder is {age} years old and may not be permitted entry.
+                    </p>
+                  </div>
+                </div>
+              )}
               <div className="rounded-2xl border border-[#2A2A34] bg-[#11111B] p-5">
                 <div className="mb-5 flex items-start justify-between">
                   <div>

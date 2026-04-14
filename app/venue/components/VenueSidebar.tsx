@@ -110,10 +110,10 @@ export default function VenueSidebar({
   const nav: NavItem[] = [
     { label: "Dashboard",  href: id ? `/venue/${id}` : "#",             icon: <House      className="h-3.75 w-3.75" />, color: "#2B36CD" },
     { label: "Incidents",  href: id ? `/venue/${id}/incidents` : "#",   icon: <ShieldAlert className="h-3.75 w-3.75" />, color: "#E84868" },
-    { label: "Patrons",    href: id ? `/venue/${id}/capacity` : "#",    icon: <Users      className="h-3.75 w-3.75" />, color: "#75FB94" },
-    { label: "Offenders",  href: id ? `/venue/${id}/offenders` : "#",   icon: <FileUser   className="h-3.75 w-3.75" />, color: "#DBA940" },
-    { label: "Staff",      href: "#",                                    icon: <Users      className="h-3.75 w-3.75" />, color: "#8B8B9D" },
+    { label: "Patrons",    href: id ? `/venue/${id}/capacity` : "#",    icon: <Users         className="h-3.75 w-3.75" />, color: "#75FB94" },
     { label: "Logs",       href: id ? `/venue/${id}/logs` : "#",         icon: <ClipboardList className="h-3.75 w-3.75" />, color: "#5B6AFF" },
+    { label: "Offenders",  href: id ? `/venue/${id}/offenders` : "#",   icon: <FileUser      className="h-3.75 w-3.75" />, color: "#DBA940" },
+    { label: "Staff",      href: "#",                                    icon: <Users         className="h-3.75 w-3.75" />, color: "#8B8B9D" },
   ];
   const network: NavItem[] = [
     { label: "Network Alerts", href: "#", icon: <Megaphone className="h-3.75 w-3.75" />, color: "#DBA940" },
