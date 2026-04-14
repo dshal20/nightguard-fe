@@ -175,23 +175,23 @@ export default function VenuePreferencesPage() {
       {/* Settings tab */}
       {tab === "settings" && (
         <form onSubmit={handleSave} className="space-y-8">
-          <section className="rounded-xl border border-white/[0.07] bg-[#11111B] p-6">
-            <div className="mb-5 flex items-center gap-2.5">
+          <section className="rounded-xl border border-white/[0.07] bg-[#11111B]">
+            <div className="flex items-center gap-2.5 border-b border-white/[0.06] px-6 py-4">
               <Building2 className="h-4 w-4 text-[#555568]" />
               <h2 className="text-sm font-bold text-[#DDDBDB]">Venue Identity</h2>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-4 p-6">
               <Field label="Venue Name" name="name" value={form.name} onChange={set("name")} placeholder="e.g. The Grand Ballroom" icon={<Building2 className="h-3.5 w-3.5" />} />
               <Field label="Phone Number" name="phoneNumber" value={form.phoneNumber} onChange={set("phoneNumber")} placeholder="e.g. +1 (555) 000-0000" icon={<Phone className="h-3.5 w-3.5" />} />
             </div>
           </section>
 
-          <section className="rounded-xl border border-white/[0.07] bg-[#11111B] p-6">
-            <div className="mb-5 flex items-center gap-2.5">
+          <section className="rounded-xl border border-white/[0.07] bg-[#11111B]">
+            <div className="flex items-center gap-2.5 border-b border-white/[0.06] px-6 py-4">
               <MapPin className="h-4 w-4 text-[#555568]" />
               <h2 className="text-sm font-bold text-[#DDDBDB]">Address</h2>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-4 p-6">
               <Field label="Street Address" name="streetAddress" value={form.streetAddress} onChange={set("streetAddress")} placeholder="e.g. 123 Main St" />
               <div className="grid grid-cols-2 gap-4">
                 <Field label="City" name="city" value={form.city} onChange={set("city")} placeholder="e.g. New York" />
@@ -201,20 +201,22 @@ export default function VenuePreferencesPage() {
             </div>
           </section>
 
-          <section className="rounded-xl border border-white/[0.07] bg-[#11111B] p-6">
-            <div className="mb-5 flex items-center gap-2.5">
+          <section className="rounded-xl border border-white/[0.07] bg-[#11111B]">
+            <div className="flex items-center gap-2.5 border-b border-white/[0.06] px-6 py-4">
               <Key className="h-4 w-4 text-[#555568]" />
               <h2 className="text-sm font-bold text-[#DDDBDB]">Invite Code</h2>
             </div>
-            <Field label="Invite Code" name="inviteCode" value={selectedVenue.inviteCode} readOnly hint="Share this code with staff so they can join this venue. Contact support to rotate it." />
+            <div className="p-6">
+              <Field label="Invite Code" name="inviteCode" value={selectedVenue.inviteCode} readOnly hint="Share this code with staff so they can join this venue. Contact support to rotate it." />
+            </div>
           </section>
 
-          <section className="rounded-xl border border-white/[0.07] bg-[#11111B] p-6">
-            <div className="mb-5 flex items-center gap-2.5">
+          <section className="rounded-xl border border-white/[0.07] bg-[#11111B]">
+            <div className="flex items-center gap-2.5 border-b border-white/[0.06] px-6 py-4">
               <Share2 className="h-4 w-4 text-[#555568]" />
               <h2 className="text-sm font-bold text-[#DDDBDB]">Data Sharing</h2>
             </div>
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center justify-between gap-4 p-6">
               <div>
                 <p className="text-xs font-medium text-[#DDDBDB]">Share venue data with the network</p>
                 <p className="mt-0.5 text-[11px] text-[#555568]">
@@ -238,13 +240,13 @@ export default function VenuePreferencesPage() {
             </div>
           </section>
 
-          <div className="flex items-center gap-3">
-            <Button type="submit" size="sm" className="h-8 gap-1.5 border border-primary bg-primary/50 px-4 text-white hover:bg-primary/70">
+          <div className="space-y-2">
+            <Button type="submit" size="sm" className="h-10 w-full gap-1.5 border border-primary bg-primary/50 px-4 text-white hover:bg-primary/70">
               <Save className="h-3.5 w-3.5" />
               Save Changes
             </Button>
-            {saved && <p className="text-xs text-[#75FB94]">Changes saved.</p>}
-            {saveError && <p className="text-xs text-red-400">Failed to save changes.</p>}
+            {saved && <p className="text-center text-xs text-[#75FB94]">Changes saved.</p>}
+            {saveError && <p className="text-center text-xs text-red-400">Failed to save changes.</p>}
           </div>
         </form>
       )}
