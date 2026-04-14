@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  allowedDevOrigins: ["*.ngrok-free.app"],
 };
 
 export default nextConfig;

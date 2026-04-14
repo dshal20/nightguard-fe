@@ -11,19 +11,24 @@
   "dependencies": {
     "@tanstack/react-query": "^5.90.21",
     "@tanstack/react-table": "^8.21.3",
+    "aamva-parser": "^1.4.1",
     "all": "^0.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "dayjs": "^1.11.20",
+    "dynamsoft-barcode-reader-bundle": "^11.2.4000",
     "firebase": "^12.9.0",
+    "jscanify": "^1.4.2",
     "lucide-react": "^0.468.0",
     "next": "16.1.6",
     "radix-ui": "^1.4.3",
     "react": "19.2.3",
+    "react-barcode-scanner": "^4.0.1",
     "react-dom": "19.2.3",
     "sonner": "^2.0.7",
-    "tailwind-merge": "^3.5.0"
+    "tailwind-merge": "^3.5.0",
+    "zxing-wasm": "^3.0.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
