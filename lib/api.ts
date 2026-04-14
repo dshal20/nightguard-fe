@@ -650,3 +650,42 @@ export async function deleteOffenderComment(
   });
   if (!res.ok) throw new Error("Failed to delete offender comment");
 }
+
+// --- Offender Bans ---
+
+export interface OffenderBanResponse {
+  id: string;
+  offenderId: string;
+  type: "BAN" | "TRESPASS";
+  issuedBy: UserProfile;
+  issuedAt: string;
+  expiresAt: string | null;
+}
+
+export async function issueOffenderBan(
+  token: string,
+  offenderId: string,
+  payload: { type: "BAN" | "TRESPASS"; expiresAt: string | null },
+): Promise<OffenderBanResponse> {
+  const res = await fetch(`${API_URL}/offenders/${offenderId}/bans`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Failed to issue ban");
+  return res.json();
+}
+
+export async function getOffenderBans(
+  token: string,
+  offenderId: string,
+): Promise<OffenderBanResponse[]> {
+  const res = await fetch(`${API_URL}/offenders/${offenderId}/bans`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch offender bans");
+  return res.json();
+}
