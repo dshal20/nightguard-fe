@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, Clock, CheckCircle2, RotateCcw, Settings, TrendingUp } from "lucide-react";
+import { Users, Clock, CheckCircle2, RotateCcw, Settings, TrendingUp, ScanLine } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useQueryClient } from "@tanstack/react-query";
@@ -15,6 +15,7 @@ import {
 import { useVenueContext } from "../../context/VenueContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import IDScannerModal from "./components/IDScannerModal";
 
 dayjs.extend(relativeTime);
 
@@ -160,6 +161,7 @@ export default function CapacityPage() {
   const [logError, setLogError] = useState<string | null>(null);
   const [justLogged, setJustLogged] = useState(false);
   const [editingCapacity, setEditingCapacity] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   // Seed count from latest headcount when it loads
   useEffect(() => {
@@ -232,16 +234,26 @@ export default function CapacityPage() {
           </button>
         </div>
 
-        {/* Status pill */}
-        <div
-          className={`mb-4 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-black tracking-widest ${status.bg} ${status.border}`}
-          style={{ color: status.color }}
-        >
-          <span
-            className={`h-1.5 w-1.5 rounded-full ${status.pulse ? "animate-pulse" : ""}`}
-            style={{ background: status.color }}
-          />
-          {status.label}
+        {/* Status pill + scanner button */}
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-black tracking-widest ${status.bg} ${status.border}`}
+            style={{ color: status.color }}
+          >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${status.pulse ? "animate-pulse" : ""}`}
+              style={{ background: status.color }}
+            />
+            {status.label}
+          </div>
+          <button
+            onClick={() => setScannerOpen(true)}
+            className="flex items-center gap-1.5 rounded-lg bg-[#262B75] px-3 py-1.5 text-[11px] font-bold text-white transition hover:bg-[#2e3490]"
+            style={{ boxShadow: "0 2px 10px rgba(38,43,117,0.4)" }}
+          >
+            <ScanLine className="h-3.5 w-3.5" />
+            Open ID Scanner
+          </button>
         </div>
 
         {/* Main counter card */}
@@ -382,6 +394,12 @@ export default function CapacityPage() {
           Reset count
         </button>
       </div>
+
+      <IDScannerModal
+        open={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        venueId={venueId!}
+      />
     </div>
   );
 }

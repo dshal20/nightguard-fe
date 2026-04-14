@@ -689,3 +689,69 @@ export async function getOffenderBans(
   if (!res.ok) throw new Error("Failed to fetch offender bans");
   return res.json();
 }
+
+// --- Patron Log ---
+
+export interface CreatePatronLogRequest {
+  firstName?: string | null;
+  lastName?: string | null;
+  middleName?: string | null;
+  driversLicenseId?: string | null;
+  dateOfBirth?: string | null;
+  expirationDate?: string | null;
+  state?: string | null;
+  streetAddress?: string | null;
+  city?: string | null;
+  postalCode?: string | null;
+  gender?: string | null;
+  eyeColor?: string | null;
+  decision: "ADMITTED" | "DENIED";
+}
+
+export interface PatronLogResponse {
+  id: string;
+  venueId: string;
+  firstName: string | null;
+  lastName: string | null;
+  middleName: string | null;
+  driversLicenseId: string | null;
+  dateOfBirth: string | null;
+  expirationDate: string | null;
+  state: string | null;
+  streetAddress: string | null;
+  city: string | null;
+  postalCode: string | null;
+  gender: string | null;
+  eyeColor: string | null;
+  decision: "ADMITTED" | "DENIED";
+  recordedBy: UserProfile | null;
+  createdAt: string;
+}
+
+export async function createPatronLog(
+  token: string,
+  venueId: string,
+  payload: CreatePatronLogRequest,
+): Promise<PatronLogResponse> {
+  const res = await fetch(`${API_URL}/venues/${venueId}/patron-log`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Failed to create patron log entry");
+  return res.json();
+}
+
+export async function getPatronLogs(
+  token: string,
+  venueId: string,
+): Promise<PatronLogResponse[]> {
+  const res = await fetch(`${API_URL}/venues/${venueId}/patron-log`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch patron logs");
+  return res.json();
+}

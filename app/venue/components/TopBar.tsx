@@ -8,8 +8,9 @@ import { useVenueContext } from "../context/VenueContext";
 
 const SUB_PAGE_TITLES: Record<string, string> = {
   incidents:   "Incidents",
-  capacity:    "Headcount",
+  capacity:    "Patrons",
   offenders:   "Offenders",
+  logs:        "Patron Logs",
   account:     "Account",
   preferences: "Venue Preferences",
 };
