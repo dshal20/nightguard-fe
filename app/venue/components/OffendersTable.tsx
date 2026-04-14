@@ -53,7 +53,7 @@ function OffendersTableInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [globalFilter, setGlobalFilter] = useState("");
-  const [sorting, setSorting] = useState<SortingState>([{ id: "createdAt", desc: true }]);
+  const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
 
   const selected = offenders.find((o) => o.id === searchParams.get("id")) ?? null;
   const [editingOffender, setEditingOffender] = useState<OffenderResponse | null>(null);
