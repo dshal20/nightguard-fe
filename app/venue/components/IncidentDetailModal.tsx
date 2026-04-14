@@ -6,6 +6,7 @@ import Link from "next/link";
 import { auth } from "@/app/src/lib/firebase";
 import { getOffender } from "@/lib/api";
 import type { IncidentResponse, OffenderResponse } from "@/lib/api";
+import { useVenueContext } from "../context/VenueContext";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,7 @@ function formatDateTime(iso: string) {
 }
 
 function OffenderRow({ id, onClose }: { id: string; onClose: () => void }) {
+  const { selectedVenue } = useVenueContext();
   const [offender, setOffender] = useState<OffenderResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -91,7 +93,7 @@ function OffenderRow({ id, onClose }: { id: string; onClose: () => void }) {
         )}
       </div>
       <Link
-        href={`/venue/offenders?id=${offender.id}`}
+        href={`/venue/${selectedVenue?.id}/offenders?id=${offender.id}`}
         onClick={onClose}
         className="flex shrink-0 items-center gap-1 rounded-md border border-[#2A2A34] bg-transparent px-2.5 py-1.5 text-[10px] font-medium text-[#8B8B9D] transition hover:bg-white/5 hover:text-white"
       >
