@@ -38,6 +38,7 @@ function toModalData(activity: NotificationActivity): IncidentModalData | null {
     description: i.description,
     keywords: i.keywords,
     offenderIds: i.offenderIds,
+    mediaUrls: [],
     createdAt: i.createdAt,
     updatedAt: i.updatedAt,
   };

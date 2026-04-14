@@ -6,6 +6,7 @@ import Link from "next/link";
 import { auth } from "@/app/src/lib/firebase";
 import { getOffender } from "@/lib/api";
 import type { IncidentResponse, OffenderResponse } from "@/lib/api";
+import { useVenueContext } from "../context/VenueContext";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,7 @@ function formatDateTime(iso: string) {
 }
 
 function OffenderRow({ id, onClose }: { id: string; onClose: () => void }) {
+  const { selectedVenue } = useVenueContext();
   const [offender, setOffender] = useState<OffenderResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -68,10 +70,19 @@ function OffenderRow({ id, onClose }: { id: string; onClose: () => void }) {
 
   if (!offender) return null;
 
+  const photo = offender.photoUrls?.[0];
+
   return (
     <div className="flex items-center gap-3 rounded-lg border border-[#2A2A34] bg-[#0F0F19] p-3">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#26262F] text-xs font-bold text-[#8B8B9D]">
-        {offender.firstName[0]}{offender.lastName[0]}
+      <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#26262F]">
+        {photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={photo} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center text-xs font-bold text-[#8B8B9D]">
+            {offender.firstName[0]}{offender.lastName[0]}
+          </span>
+        )}
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-xs font-bold text-[#DDDBDB]">
@@ -82,7 +93,7 @@ function OffenderRow({ id, onClose }: { id: string; onClose: () => void }) {
         )}
       </div>
       <Link
-        href={`/venue/offenders?id=${offender.id}`}
+        href={`/venue/${selectedVenue?.id}/offenders?id=${offender.id}`}
         onClick={onClose}
         className="flex shrink-0 items-center gap-1 rounded-md border border-[#2A2A34] bg-transparent px-2.5 py-1.5 text-[10px] font-medium text-[#8B8B9D] transition hover:bg-white/5 hover:text-white"
       >
