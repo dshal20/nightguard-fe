@@ -8,6 +8,7 @@ export interface UserProfile {
   lastName: string | null;
   email: string | null;
   phoneNumber: string | null;
+  profileUrl: string | null;
   role: UserRole;
 }
 
@@ -20,6 +21,8 @@ export interface Venue {
   postalCode: string;
   phoneNumber: string;
   inviteCode: string;
+  dataSharingEnabled: boolean;
+  venueImageUrl: string | null;
 }
 
 export interface CreateVenueRequest {
@@ -36,6 +39,7 @@ export interface UpdateProfilePayload {
   lastName?: string;
   email?: string;
   phoneNumber?: string;
+  profileUrl?: string;
 }
 
 export type IncidentType =
@@ -63,6 +67,7 @@ export interface OffenderResponse {
   currentStatus?: string;
   globalId?: string;
   notes?: string;
+  photoUrls: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -75,6 +80,7 @@ export interface CreateOffenderRequest {
   riskScore?: number;
   currentStatus?: string;
   notes?: string;
+  photoUrls?: string[];
 }
 
 export interface CreateIncidentRequest {
@@ -84,6 +90,7 @@ export interface CreateIncidentRequest {
   description: string;
   keywords: string[];
   offenderIds?: string[];
+  mediaUrls?: string[];
 }
 
 export type IncidentStatus = "ACTIVE" | "COMPLETED";
@@ -98,8 +105,36 @@ export interface IncidentResponse {
   description: string;
   keywords: string[];
   offenderIds: string[];
+  mediaUrls: string[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface UpdateVenueRequest {
+  name?: string;
+  streetAddress?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  phoneNumber?: string;
+  venueImageUrl?: string;
+}
+
+export async function updateVenue(
+  token: string,
+  venueId: string,
+  payload: UpdateVenueRequest,
+): Promise<Venue> {
+  const res = await fetch(`${API_URL}/venues/${venueId}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Failed to update venue");
+  return res.json();
 }
 
 export async function createVenue(
@@ -260,6 +295,7 @@ export interface UpdateIncidentRequest {
   description?: string;
   keywords?: string[];
   offenderIds?: string[];
+  mediaUrls?: string[];
 }
 
 export async function updateIncident(
@@ -341,5 +377,381 @@ export async function createOffender(
     body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error("Failed to create offender");
+  return res.json();
+}
+
+export interface UpdateOffenderRequest {
+  firstName?: string;
+  lastName?: string;
+  physicalMarkers?: string;
+  riskScore?: number | null;
+  currentStatus?: string;
+  notes?: string;
+  photoUrls?: string[];
+}
+
+export async function updateOffender(
+  token: string,
+  id: string,
+  payload: UpdateOffenderRequest,
+): Promise<OffenderResponse> {
+  const res = await fetch(`${API_URL}/offenders/${id}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Failed to update offender");
+  return res.json();
+}
+
+export async function updateDataSharing(
+  token: string,
+  venueId: string,
+  enabled: boolean,
+): Promise<Venue> {
+  const res = await fetch(`${API_URL}/venues/${venueId}/data-sharing`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ enabled }),
+  });
+  if (!res.ok) throw new Error("Failed to update data sharing");
+  return res.json();
+}
+
+// --- Nearby Venues ---
+
+export interface NearbyVenueResponse {
+  id: string;
+  name: string;
+  streetAddress: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  phoneNumber: string;
+}
+
+export async function getNearbyVenues(
+  token: string,
+  venueId: string,
+  city: string,
+  state: string,
+  zip?: string,
+): Promise<NearbyVenueResponse[]> {
+  const params = new URLSearchParams({ venueId, city, state });
+  if (zip) params.set("zip", zip);
+  const res = await fetch(`${API_URL}/venues/nearby?${params}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch nearby venues");
+  return res.json();
+}
+
+// --- FCM Token ---
+
+export async function registerFcmToken(token: string, fcmToken: string): Promise<void> {
+  const res = await fetch(`${API_URL}/users/me/fcm-token`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ token: fcmToken }),
+  });
+  if (!res.ok) throw new Error("Failed to register FCM token");
+}
+
+// --- Notification Activity ---
+
+export type NotificationActivityType = "INCIDENT_REPORTED" | "OFFENDER_ADDED";
+
+export interface NotificationActivity {
+  id: string;
+  type: NotificationActivityType;
+  fromVenueId: string;
+  fromVenueName: string;
+  createdAt: string;
+  incident: {
+    id: string;
+    type: IncidentType;
+    severity: IncidentSeverity;
+    status: IncidentStatus;
+    description: string;
+    keywords: string[];
+    offenderIds: string[];
+    createdAt: string;
+    updatedAt: string;
+  } | null;
+  offender: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    physicalMarkers: string | null;
+  } | null;
+}
+
+export async function getNotificationActivity(
+  token: string,
+  venueId: string,
+  sinceMinutes?: number,
+): Promise<NotificationActivity[]> {
+  const url = new URL(`${API_URL}/notifications/${venueId}/activity`);
+  if (sinceMinutes) {
+    const since = new Date(Date.now() - sinceMinutes * 60 * 1000).toISOString();
+    url.searchParams.set("since", since);
+  }
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch activity");
+  return res.json();
+}
+
+// --- Notification Subscriptions ---
+
+export interface NotificationSubscription {
+  id: string;
+  subscriber: string;
+  venueId: string;
+  name: string;
+  streetAddress: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  phoneNumber: string;
+  notificationLevel: IncidentSeverity;
+}
+
+export async function getSubscriptions(
+  token: string,
+  venueId: string,
+): Promise<NotificationSubscription[]> {
+  const res = await fetch(`${API_URL}/notifications/${venueId}/subscriptions`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch subscriptions");
+  return res.json();
+}
+
+export async function subscribeToVenues(
+  token: string,
+  venueId: string,
+  venueIds: string[],
+  notificationLevel: IncidentSeverity = "LOW",
+): Promise<NotificationSubscription[]> {
+  const res = await fetch(`${API_URL}/notifications/${venueId}/subscriptions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ venueIds, notificationLevel }),
+  });
+  if (!res.ok) throw new Error("Failed to subscribe");
+  return res.json();
+}
+
+export async function updateSubscriptionLevel(
+  token: string,
+  venueId: string,
+  targetVenueId: string,
+  notificationLevel: IncidentSeverity,
+): Promise<NotificationSubscription> {
+  const res = await fetch(
+    `${API_URL}/notifications/${venueId}/subscriptions/${targetVenueId}`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ notificationLevel }),
+    },
+  );
+  if (!res.ok) throw new Error("Failed to update notification level");
+  return res.json();
+}
+
+export async function uploadFile(token: string, file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetch(`${API_URL}/upload`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
+  if (!res.ok) throw new Error("Failed to upload file");
+  const data = await res.json();
+  return data.url;
+}
+
+export async function unsubscribeFromVenue(
+  token: string,
+  venueId: string,
+  targetVenueId: string,
+): Promise<void> {
+  const res = await fetch(
+    `${API_URL}/notifications/${venueId}/subscriptions/${targetVenueId}`,
+    { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
+  );
+  if (!res.ok) throw new Error("Failed to unsubscribe");
+}
+
+// --- Offender Comments ---
+
+export interface OffenderCommentResponse {
+  id: string;
+  offenderId: string;
+  author: UserProfile;
+  comment: string;
+  createdAt: string;
+}
+
+export async function getOffenderComments(
+  token: string,
+  offenderId: string,
+): Promise<OffenderCommentResponse[]> {
+  const res = await fetch(`${API_URL}/offenders/${offenderId}/comments`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch offender comments");
+  return res.json();
+}
+
+export async function createOffenderComment(
+  token: string,
+  offenderId: string,
+  comment: string,
+): Promise<OffenderCommentResponse> {
+  const res = await fetch(`${API_URL}/offenders/${offenderId}/comments`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ comment }),
+  });
+  if (!res.ok) throw new Error("Failed to create offender comment");
+  return res.json();
+}
+
+export async function deleteOffenderComment(
+  token: string,
+  commentId: string,
+): Promise<void> {
+  const res = await fetch(`${API_URL}/offender-comments/${commentId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to delete offender comment");
+}
+
+// --- Offender Bans ---
+
+export interface OffenderBanResponse {
+  id: string;
+  offenderId: string;
+  type: "BAN" | "TRESPASS";
+  issuedBy: UserProfile;
+  issuedAt: string;
+  expiresAt: string | null;
+}
+
+export async function issueOffenderBan(
+  token: string,
+  offenderId: string,
+  payload: { type: "BAN" | "TRESPASS"; expiresAt: string | null },
+): Promise<OffenderBanResponse> {
+  const res = await fetch(`${API_URL}/offenders/${offenderId}/bans`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Failed to issue ban");
+  return res.json();
+}
+
+export async function getOffenderBans(
+  token: string,
+  offenderId: string,
+): Promise<OffenderBanResponse[]> {
+  const res = await fetch(`${API_URL}/offenders/${offenderId}/bans`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch offender bans");
+  return res.json();
+}
+
+// --- Patron Log ---
+
+export interface CreatePatronLogRequest {
+  firstName?: string | null;
+  lastName?: string | null;
+  middleName?: string | null;
+  driversLicenseId?: string | null;
+  dateOfBirth?: string | null;
+  expirationDate?: string | null;
+  state?: string | null;
+  streetAddress?: string | null;
+  city?: string | null;
+  postalCode?: string | null;
+  gender?: string | null;
+  eyeColor?: string | null;
+  decision: "ADMITTED" | "DENIED";
+}
+
+export interface PatronLogResponse {
+  id: string;
+  venueId: string;
+  firstName: string | null;
+  lastName: string | null;
+  middleName: string | null;
+  driversLicenseId: string | null;
+  dateOfBirth: string | null;
+  expirationDate: string | null;
+  state: string | null;
+  streetAddress: string | null;
+  city: string | null;
+  postalCode: string | null;
+  gender: string | null;
+  eyeColor: string | null;
+  decision: "ADMITTED" | "DENIED";
+  recordedBy: UserProfile | null;
+  createdAt: string;
+}
+
+export async function createPatronLog(
+  token: string,
+  venueId: string,
+  payload: CreatePatronLogRequest,
+): Promise<PatronLogResponse> {
+  const res = await fetch(`${API_URL}/venues/${venueId}/patron-log`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Failed to create patron log entry");
+  return res.json();
+}
+
+export async function getPatronLogs(
+  token: string,
+  venueId: string,
+): Promise<PatronLogResponse[]> {
+  const res = await fetch(`${API_URL}/venues/${venueId}/patron-log`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch patron logs");
   return res.json();
 }

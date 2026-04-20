@@ -1,20 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, Clock, CheckCircle2, RotateCcw, Settings, TrendingUp } from "lucide-react";
+import { Users, Clock, CheckCircle2, RotateCcw, Settings, TrendingUp, ScanLine } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useQueryClient } from "@tanstack/react-query";
-import { auth } from "../../src/lib/firebase";
+import { auth } from "../../../src/lib/firebase";
 import { setCapacity, addHeadcount } from "@/lib/api";
 import {
   useCapacityQuery,
   useHeadcountsQuery,
   useAuthToken,
 } from "@/lib/queries";
-import { useVenueContext } from "../context/VenueContext";
+import { useVenueContext } from "../../context/VenueContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import IDScannerModal from "./components/IDScannerModal";
 
 dayjs.extend(relativeTime);
 
@@ -160,6 +161,7 @@ export default function CapacityPage() {
   const [logError, setLogError] = useState<string | null>(null);
   const [justLogged, setJustLogged] = useState(false);
   const [editingCapacity, setEditingCapacity] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   // Seed count from latest headcount when it loads
   useEffect(() => {
@@ -231,6 +233,16 @@ export default function CapacityPage() {
             Edit limit
           </button>
         </div>
+
+        {/* Open ID Scanner button */}
+        <button
+          onClick={() => setScannerOpen(true)}
+          className="mb-4 flex h-12 w-full items-center justify-center gap-2.5 rounded-2xl bg-[#262B75] text-sm font-bold text-white transition hover:bg-[#2e3490] active:scale-[0.98]"
+          style={{ boxShadow: "0 4px 20px rgba(38,43,117,0.4)" }}
+        >
+          <ScanLine className="h-4 w-4" />
+          Open ID Scanner
+        </button>
 
         {/* Status pill */}
         <div
@@ -382,6 +394,22 @@ export default function CapacityPage() {
           Reset count
         </button>
       </div>
+
+      <IDScannerModal
+        open={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        venueId={venueId!}
+        onAdmit={async () => {
+          const newCount = count + 1;
+          setCount(newCount);
+          setJustLogged(false);
+          const token = await auth.currentUser?.getIdToken();
+          if (token) {
+            await addHeadcount(token, venueId!, newCount);
+            queryClient.invalidateQueries({ queryKey: ["headcounts", venueId] });
+          }
+        }}
+      />
     </div>
   );
 }

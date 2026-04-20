@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { X, CheckCircle, Loader2 } from "lucide-react";
+import { useState, useRef, type FormEvent } from "react";
+import { X, CheckCircle, Loader2, ImagePlus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,7 @@ import {
 import { auth } from "@/app/src/lib/firebase";
 import {
   createIncident,
+  uploadFile,
   type IncidentType,
   type IncidentSeverity,
   type OffenderResponse,
@@ -68,11 +69,13 @@ export default function IncidentReportDialog({
   const [keywordInput, setKeywordInput] = useState("");
   const [keywords, setKeywords] = useState<string[]>([]);
   const [offenders, setOffenders] = useState<OffenderResponse[]>([]);
+  const [mediaFiles, setMediaFiles] = useState<{ file: File; preview: string }[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const { data: allOffenders = [] } = useOffendersQuery(venueId);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const mediaInputRef = useRef<HTMLInputElement>(null);
 
   function resetForm() {
     setType("");
@@ -81,9 +84,31 @@ export default function IncidentReportDialog({
     setKeywordInput("");
     setKeywords([]);
     setOffenders([]);
+    setMediaFiles([]);
     setSubmitted(false);
     setSubmitting(false);
     setError(null);
+  }
+
+  function handleMediaSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    const newItems = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setMediaFiles((prev) => [...prev, ...newItems]);
+    e.target.value = "";
+  }
+
+  function removeMedia(index: number) {
+    setMediaFiles((prev) => {
+      URL.revokeObjectURL(prev[index].preview);
+      return prev.filter((_, i) => i !== index);
+    });
+  }
+
+  function isVideo(file: File) {
+    return file.type.startsWith("video/");
   }
 
   function handleOpenChange(next: boolean) {
@@ -122,6 +147,7 @@ export default function IncidentReportDialog({
       if (!user) throw new Error("You must be signed in to submit a report");
 
       const token = await user.getIdToken();
+      const mediaUrls = await Promise.all(mediaFiles.map((m) => uploadFile(token, m.file)));
       await createIncident(token, {
         venueId,
         type,
@@ -129,6 +155,7 @@ export default function IncidentReportDialog({
         description: description.trim(),
         keywords,
         offenderIds: offenders.map((o) => o.id),
+        mediaUrls,
       });
 
       queryClient.invalidateQueries({ queryKey: ["incidents"] });
@@ -228,7 +255,7 @@ export default function IncidentReportDialog({
                     key={level}
                     type="button"
                     onClick={() => setSeverity(level)}
-                    className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition ${
+                    className={`rounded border px-3 py-2 text-xs font-bold transition ${
                       active
                         ? `${colors.bg} ${colors.border} ${colors.text}`
                         : "border-[#2A2A34] bg-[#1a1a28] text-[#8B8B9D] hover:border-[#3A3A44]"
@@ -305,6 +332,57 @@ export default function IncidentReportDialog({
             selected={offenders}
             onChange={setOffenders}
           />
+
+          {/* Media Upload */}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-[#DDDBDB]">
+              Media
+            </label>
+            <input
+              ref={mediaInputRef}
+              type="file"
+              accept="image/*,video/*"
+              multiple
+              className="hidden"
+              onChange={handleMediaSelect}
+            />
+            {mediaFiles.length > 0 && (
+              <div className="mb-2 flex flex-wrap gap-2">
+                {mediaFiles.map((m, i) => (
+                  <div key={i} className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md border border-[#2A2A34]">
+                    {isVideo(m.file) ? (
+                      <video
+                        src={m.preview}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={m.preview}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeMedia(i)}
+                      className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-black/70 text-white hover:bg-black"
+                    >
+                      <X className="h-2.5 w-2.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => mediaInputRef.current?.click()}
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-[#2A2A34] bg-[#1a1a28] py-3 text-sm text-[#8B8B9D] transition hover:border-[#3A3A44] hover:text-white"
+            >
+              <ImagePlus className="h-4 w-4" />
+              Add Photos or Videos
+            </button>
+          </div>
 
           {error && (
             <p className="rounded-lg border border-[#EB4869]/30 bg-[#EB4869]/10 px-4 py-2 text-sm text-[#E84868]">

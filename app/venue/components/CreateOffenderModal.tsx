@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ImagePlus, Loader2, Upload, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { auth } from "@/app/src/lib/firebase";
-import { createOffender } from "@/lib/api";
+import { createOffender, uploadFile } from "@/lib/api";
 import type { OffenderResponse, CreateOffenderRequest } from "@/lib/api";
 import {
   Dialog,
@@ -23,38 +23,53 @@ interface Props {
   venueId: string;
   onClose: () => void;
   onCreated: (offender: OffenderResponse) => void;
+  initialValues?: { firstName?: string; lastName?: string };
 }
 
-export default function CreateOffenderModal({ open, venueId, onClose, onCreated }: Props) {
+export default function CreateOffenderModal({ open, venueId, onClose, onCreated, initialValues }: Props) {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState<Omit<CreateOffenderRequest, "venueId">>({
-    firstName: "",
-    lastName: "",
+    firstName: initialValues?.firstName ?? "",
+    lastName: initialValues?.lastName ?? "",
     physicalMarkers: "",
     notes: "",
   });
-  const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (open) {
+      setForm({
+        firstName: initialValues?.firstName ?? "",
+        lastName: initialValues?.lastName ?? "",
+        physicalMarkers: "",
+        notes: "",
+      });
+      setImages([]);
+      setError(null);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   function handleClose() {
     setForm({ firstName: "", lastName: "", physicalMarkers: "", notes: "" });
-    setPreviewImages([]);
+    setImages([]);
     setError(null);
     onClose();
   }
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
-    const urls = files.map((f) => URL.createObjectURL(f));
-    setPreviewImages((prev) => [...prev, ...urls]);
+    const entries = files.map((file) => ({ file, preview: URL.createObjectURL(file) }));
+    setImages((prev) => [...prev, ...entries]);
     e.target.value = "";
   }
 
   function removeImage(index: number) {
-    setPreviewImages((prev) => prev.filter((_, i) => i !== index));
+    setImages((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function handleSave() {
@@ -64,12 +79,18 @@ export default function CreateOffenderModal({ open, venueId, onClose, onCreated 
     try {
       const token = await auth.currentUser?.getIdToken();
       if (!token) throw new Error("Not authenticated");
+
+      const photoUrls = await Promise.all(
+        images.map(({ file }) => uploadFile(token, file))
+      );
+
       const newOffender = await createOffender(token, {
         venueId,
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         physicalMarkers: form.physicalMarkers?.trim() || undefined,
         notes: form.notes?.trim() || undefined,
+        photoUrls: photoUrls.length > 0 ? photoUrls : undefined,
       });
       queryClient.invalidateQueries({ queryKey: ["offenders", venueId] });
       onCreated(newOffender);
@@ -142,12 +163,12 @@ export default function CreateOffenderModal({ open, venueId, onClose, onCreated 
           <div>
             <label className={labelClass}>Photos</label>
 
-            {previewImages.length > 0 && (
+            {images.length > 0 && (
               <div className="mb-2 flex flex-wrap gap-2">
-                {previewImages.map((src, i) => (
+                {images.map(({ preview }, i) => (
                   <div key={i} className="relative h-20 w-20 overflow-hidden rounded-lg border border-[#2A2A34]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={src} alt="" className="h-full w-full object-cover" />
+                    <img src={preview} alt="" className="h-full w-full object-cover" />
                     <button
                       type="button"
                       onClick={() => removeImage(i)}
@@ -163,7 +184,7 @@ export default function CreateOffenderModal({ open, venueId, onClose, onCreated 
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#2A2A34] bg-[#0F0F19] py-6 text-[#4A4A5A] transition hover:border-[#3B3B5A] hover:bg-white/[0.02] hover:text-[#8B8B9D]"
+              className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#2A2A34] bg-[#0F0F19] py-6 text-[#4A4A5A] transition hover:border-[#3B3B5A] hover:bg-white/2 hover:text-[#8B8B9D]"
             >
               <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#2A2A34] bg-[#1a1a28]">
                 <ImagePlus className="h-5 w-5" />

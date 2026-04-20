@@ -6,6 +6,8 @@ import { Eye, Loader2, Pencil, ChevronUp, ChevronDown, ChevronsUpDown } from "lu
 import type { IncidentResponse, IncidentSeverity, IncidentStatus } from "@/lib/api";
 import IncidentDetailModal from "./IncidentDetailModal";
 import EditIncidentModal from "./EditIncidentModal";
+import { Button } from "@/components/ui/button";
+import { ColorTag, severityVariant, statusVariant } from "@/components/ui/color-tag";
 import {
   Table,
   TableBody,
@@ -18,17 +20,6 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
 dayjs.extend(relativeTime);
-
-const statusStyle: Record<IncidentStatus, string> = {
-  ACTIVE:    "border-amber-400 bg-amber-400/10 text-amber-400",
-  COMPLETED: "border-green-400 bg-green-400/10 text-green-400",
-};
-
-const severityStyle: Record<IncidentSeverity, string> = {
-  LOW:    "border-[#2B36CD] bg-[#2B36CD]/10 text-[#5B6AFF]",
-  MEDIUM: "border-[#DBA940] bg-[#DBA940]/10 text-[#DBA940]",
-  HIGH:   "border-[#EB4869] bg-[#EB4869]/10 text-[#E84868]",
-};
 
 function formatType(type: string) {
   return type.split("_").map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
@@ -76,13 +67,10 @@ export default function RecentReports({ incidents, loading }: RecentReportsProps
 
   return (
     <>
-      <div className="rounded-xl border border-[#2A2A34] bg-[#11111B]">
-        <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-[#2A2A34]">
+      <div className="rounded-xl border border-white/[0.07] bg-[#11111B]">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-white/[0.07]">
           <h2 className="text-lg font-black leading-8 text-[#E2E2E2]">Recent Reports</h2>
-          <Link
-            href="/venue/incidents"
-            className="rounded-lg border border-[#2A2A34] bg-[#26262F]/48 px-4 py-2 text-xs font-bold text-white"
-          >
+          <Link href="/venue/incidents" className="text-sm font-medium text-[#8B8B9D] hover:text-white">
             View All Reports
           </Link>
         </div>
@@ -100,7 +88,7 @@ export default function RecentReports({ incidents, loading }: RecentReportsProps
         {!loading && recent.length > 0 && (
           <Table>
             <TableHeader>
-              <TableRow className="border-[#2A2A34] hover:bg-transparent">
+              <TableRow className="border-white/[0.07] hover:bg-transparent">
                 <TableHead className="text-[10px] font-bold uppercase text-[#8B8B9D]">Type / Description</TableHead>
                 <TableHead className="cursor-pointer select-none text-[10px] font-bold uppercase text-[#8B8B9D] hover:text-[#DDDBDB] transition-colors" onClick={() => handleSort("severity")}>
                   Severity <SortIcon col="severity" sortKey={sortKey} sortDir={sortDir} />
@@ -119,20 +107,16 @@ export default function RecentReports({ incidents, loading }: RecentReportsProps
             </TableHeader>
             <TableBody>
               {recent.map((inc) => (
-                <TableRow key={inc.id} className="border-[#2A2A34] hover:bg-white/[0.02]">
+                <TableRow key={inc.id} className="border-white/[0.07] hover:bg-white/2">
                   <TableCell className="py-2">
                     <p className="text-xs font-medium text-white">{formatType(inc.type)}</p>
-                    <p className="max-w-[300px] truncate text-xs text-[#8B8B9D]">{inc.description}</p>
+                    <p className="max-w-75 truncate text-xs text-[#8B8B9D]">{inc.description}</p>
                   </TableCell>
                   <TableCell className="py-2">
-                    <span className={`rounded-[7px] border px-2 py-0.5 text-[10px] font-medium leading-[18px] ${severityStyle[inc.severity]}`}>
-                      {inc.severity}
-                    </span>
+                    <ColorTag variant={severityVariant[inc.severity]}>{inc.severity}</ColorTag>
                   </TableCell>
                   <TableCell className="py-2 w-28">
-                    <span className={`rounded-[7px] border px-2 py-0.5 text-[10px] font-medium leading-[18px] ${statusStyle[inc.status]}`}>
-                      {inc.status}
-                    </span>
+                    <ColorTag variant={statusVariant[inc.status]}>{inc.status}</ColorTag>
                   </TableCell>
                   <TableCell className="py-2 text-xs font-normal text-[#8B8B9D] whitespace-nowrap">
                     {dayjs(inc.createdAt).fromNow()}
@@ -141,19 +125,13 @@ export default function RecentReports({ incidents, loading }: RecentReportsProps
                     {dayjs(inc.updatedAt).fromNow()}
                   </TableCell>
                   <TableCell className="py-2">
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => setSelected(inc)}
-                        className="flex items-center justify-center rounded-md p-1.5 text-[#8B8B9D] transition hover:bg-white/[0.06] hover:text-white"
-                      >
+                    <div className="flex items-center gap-2.5 justify-end">
+                      <Button size="icon-sm" onClick={() => setSelected(inc)} className="border border-primary bg-primary/50 text-white hover:bg-primary/70 ml-auto">
                         <Eye className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => setEditing(inc)}
-                        className="flex items-center justify-center rounded-md p-1.5 text-[#8B8B9D] transition hover:bg-white/[0.06] hover:text-white"
-                      >
+                      </Button>
+                      <Button size="icon-sm" onClick={() => setEditing(inc)} className="border border-primary bg-transparent text-primary hover:bg-primary/10">
                         <Pencil className="h-3.5 w-3.5" />
-                      </button>
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>

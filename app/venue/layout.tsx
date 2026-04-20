@@ -7,7 +7,8 @@ import { onAuthStateChanged, type User } from "firebase/auth";
 import VenueSidebar from "./components/VenueSidebar";
 import TopBar from "./components/TopBar";
 import { VenueProvider } from "./context/VenueContext";
-import { useVenuesQuery } from "@/lib/queries";
+import { useVenuesQuery, useAuthToken } from "@/lib/queries";
+import { useFcmNotifications } from "@/hooks/useFcmNotifications";
 import { Menu } from "lucide-react";
 
 export default function VenueLayout({
@@ -32,7 +33,9 @@ export default function VenueLayout({
     if (!authLoading && !user) router.push("/login");
   }, [authLoading, user, router]);
 
-  const { data: venues = [], isLoading: venuesLoading, refetch } = useVenuesQuery();
+const { data: venues = [], isLoading: venuesLoading, refetch } = useVenuesQuery();
+  const authToken = useAuthToken();
+  useFcmNotifications(authToken);
 
   if (authLoading || !user) {
     return (

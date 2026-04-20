@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { auth } from "@/app/src/lib/firebase";
 import { getOffender } from "@/lib/api";
-import type { IncidentResponse, IncidentSeverity, OffenderResponse } from "@/lib/api";
+import type { IncidentResponse, OffenderResponse } from "@/lib/api";
+import { useVenueContext } from "../context/VenueContext";
 import {
   Dialog,
   DialogContent,
@@ -12,12 +14,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { User, ArrowUpRight } from "lucide-react";
+import { User, Building2, ArrowUpRight, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { ColorTag, severityVariant } from "@/components/ui/color-tag";
 
-const severityStyle: Record<IncidentSeverity, string> = {
-  LOW: "border-[#2B36CD] bg-[#2B36CD]/10 text-[#5B6AFF]",
-  MEDIUM: "border-[#DBA940] bg-[#DBA940]/10 text-[#DBA940]",
-  HIGH: "border-[#EB4869] bg-[#EB4869]/10 text-[#E84868]",
+// Looser shape so the modal works with both IncidentResponse (has reporter)
+// and notification activity incidents (no reporter, has sourceVenueName instead).
+export type IncidentModalData = Omit<IncidentResponse, "reporter" | "venueId"> & {
+  reporter?: IncidentResponse["reporter"];
+  venueId?: string;
 };
 
 function formatType(type: string) {
@@ -32,12 +36,13 @@ function formatDateTime(iso: string) {
 }
 
 function OffenderRow({ id, onClose }: { id: string; onClose: () => void }) {
+  const { selectedVenue } = useVenueContext();
   const [offender, setOffender] = useState<OffenderResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    async function fetch() {
+    async function load() {
       try {
         const token = await auth.currentUser?.getIdToken();
         if (!token) return;
@@ -47,7 +52,7 @@ function OffenderRow({ id, onClose }: { id: string; onClose: () => void }) {
         if (!cancelled) setLoading(false);
       }
     }
-    fetch();
+    load();
     return () => { cancelled = true; };
   }, [id]);
 
@@ -65,10 +70,19 @@ function OffenderRow({ id, onClose }: { id: string; onClose: () => void }) {
 
   if (!offender) return null;
 
+  const photo = offender.photoUrls?.[0];
+
   return (
     <div className="flex items-center gap-3 rounded-lg border border-[#2A2A34] bg-[#0F0F19] p-3">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#26262F] text-xs font-bold text-[#8B8B9D]">
-        {offender.firstName[0]}{offender.lastName[0]}
+      <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#26262F]">
+        {photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={photo} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center text-xs font-bold text-[#8B8B9D]">
+            {offender.firstName[0]}{offender.lastName[0]}
+          </span>
+        )}
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-xs font-bold text-[#DDDBDB]">
@@ -79,7 +93,7 @@ function OffenderRow({ id, onClose }: { id: string; onClose: () => void }) {
         )}
       </div>
       <Link
-        href={`/venue/offenders?id=${offender.id}`}
+        href={`/venue/${selectedVenue?.id}/offenders?id=${offender.id}`}
         onClick={onClose}
         className="flex shrink-0 items-center gap-1 rounded-md border border-[#2A2A34] bg-transparent px-2.5 py-1.5 text-[10px] font-medium text-[#8B8B9D] transition hover:bg-white/5 hover:text-white"
       >
@@ -91,15 +105,31 @@ function OffenderRow({ id, onClose }: { id: string; onClose: () => void }) {
 }
 
 interface Props {
-  incident: IncidentResponse | null;
+  incident: IncidentModalData | null;
   onClose: () => void;
+  /** When provided, renders a venue source row instead of the reporter row. */
+  sourceVenueName?: string;
 }
 
-export default function IncidentDetailModal({ incident, onClose }: Props) {
+function isVideoUrl(url: string) {
+  return /\.(mp4|mov|webm|ogg)(\?|$)/i.test(url);
+}
+
+export default function IncidentDetailModal({ incident, onClose, sourceVenueName }: Props) {
   const reporter = incident?.reporter;
   const reporterName = [reporter?.firstName, reporter?.lastName].filter(Boolean).join(" ");
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const imageUrls = (incident?.mediaUrls ?? []).filter((u) => !isVideoUrl(u));
+
+  useEffect(() => {
+    setLightboxIndex(null);
+  }, [incident?.id]);
+
+  const lb = lightboxIndex;
 
   return (
+    <>
     <Dialog open={!!incident} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="border-[#2A2A34] bg-[#11111D] text-[#DDDBDB] sm:max-w-md">
         <DialogHeader>
@@ -108,9 +138,7 @@ export default function IncidentDetailModal({ incident, onClose }: Props) {
               {incident ? formatType(incident.type) : ""}
             </DialogTitle>
             {incident && (
-              <span className={`rounded-[7px] border px-2 py-0.5 text-[10px] font-bold leading-[18px] ${severityStyle[incident.severity]}`}>
-                {incident.severity}
-              </span>
+              <ColorTag variant={severityVariant[incident.severity]}>{incident.severity}</ColorTag>
             )}
           </div>
           {incident && (
@@ -125,7 +153,7 @@ export default function IncidentDetailModal({ incident, onClose }: Props) {
               <p className="text-sm text-[#DDDBDB]">{incident.description}</p>
             </div>
 
-            {incident.keywords.length > 0 && (
+            {incident.keywords?.length > 0 && (
               <div>
                 <p className="mb-1.5 text-[10px] font-bold uppercase text-[#8B8B9D]">Keywords</p>
                 <div className="flex flex-wrap gap-1.5">
@@ -151,18 +179,65 @@ export default function IncidentDetailModal({ incident, onClose }: Props) {
               </div>
             )}
 
-            <div>
-              <p className="mb-1.5 text-[10px] font-bold uppercase text-[#8B8B9D]">Reported By</p>
-              <div className="flex items-center gap-2.5 rounded-lg border border-[#2A2A34] bg-[#0F0F19] p-3">
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#262B75]">
-                  <User className="h-3.5 w-3.5 text-[#8B8B9D]" />
-                </div>
-                <div>
-                  {reporterName && <p className="text-xs font-bold text-[#DDDBDB]">{reporterName}</p>}
-                  <p className="text-[11px] text-[#8B8B9D]">{reporter?.email}</p>
+            {/* Media */}
+            {incident.mediaUrls?.length > 0 && (
+              <div>
+                <p className="mb-1.5 text-[10px] font-bold uppercase text-[#8B8B9D]">
+                  Media ({incident.mediaUrls.length})
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {incident.mediaUrls.map((url, i) =>
+                    isVideoUrl(url) ? (
+                      <video
+                        key={i}
+                        src={url}
+                        controls
+                        className="max-h-40 rounded-md border border-[#2A2A34]"
+                      />
+                    ) : (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setLightboxIndex(imageUrls.indexOf(url))}
+                        className="h-16 w-16 shrink-0 overflow-hidden rounded-md border border-[#2A2A34] hover:opacity-80 transition"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={url} alt="" className="h-full w-full object-cover" />
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Reporter row — shown for own-venue incidents */}
+            {!sourceVenueName && reporter && (
+              <div>
+                <p className="mb-1.5 text-[10px] font-bold uppercase text-[#8B8B9D]">Reported By</p>
+                <div className="flex items-center gap-2.5 rounded-lg border border-[#2A2A34] bg-[#0F0F19] p-3">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#262B75]">
+                    <User className="h-3.5 w-3.5 text-[#8B8B9D]" />
+                  </div>
+                  <div>
+                    {reporterName && <p className="text-xs font-bold text-[#DDDBDB]">{reporterName}</p>}
+                    <p className="text-[11px] text-[#8B8B9D]">{reporter.email}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Source venue row — shown for network notifications */}
+            {sourceVenueName && (
+              <div>
+                <p className="mb-1.5 text-[10px] font-bold uppercase text-[#8B8B9D]">Reported by Venue</p>
+                <div className="flex items-center gap-2.5 rounded-lg border border-[#2A2A34] bg-[#0F0F19] p-3">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#262B75]">
+                    <Building2 className="h-3.5 w-3.5 text-[#8B8B9D]" />
+                  </div>
+                  <p className="text-xs font-semibold text-[#DDDBDB]">{sourceVenueName}</p>
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3 rounded-lg border border-[#2A2A34] bg-[#0F0F19] p-3">
               <div>
@@ -178,5 +253,58 @@ export default function IncidentDetailModal({ incident, onClose }: Props) {
         )}
       </DialogContent>
     </Dialog>
+
+    {lb !== null &&
+      imageUrls.length > 0 &&
+      createPortal(
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90"
+          onClick={() => setLightboxIndex(null)}
+        >
+          <button
+            type="button"
+            onClick={() => setLightboxIndex(null)}
+            className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          {imageUrls.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxIndex((prev) => (prev! - 1 + imageUrls.length) % imageUrls.length);
+                }}
+                className="absolute left-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxIndex((prev) => (prev! + 1) % imageUrls.length);
+                }}
+                className="absolute right-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+              <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-white/60">
+                {lb + 1} / {imageUrls.length}
+              </p>
+            </>
+          )}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={imageUrls[lb]}
+            alt=""
+            className="max-h-[85vh] max-w-[90vw] rounded-lg object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>,
+        document.body
+      )}
+    </>
   );
 }

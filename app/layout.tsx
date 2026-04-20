@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import QueryProvider from "./QueryProvider";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "NightGuard",
@@ -21,6 +22,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <QueryProvider>{children}</QueryProvider>
+        <Toaster theme="dark" position="bottom-right" richColors />
       </body>
     </html>
   );

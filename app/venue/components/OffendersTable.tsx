@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useMemo, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   useReactTable,
   getCoreRowModel,
@@ -11,7 +11,7 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
-import { ChevronUp, ChevronDown, ChevronsUpDown, Search, Eye } from "lucide-react";
+import { ChevronUp, ChevronDown, ChevronsUpDown, Search, Eye, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { ColorTag } from "@/components/ui/color-tag";
 import { useVenueContext } from "../context/VenueContext";
 import { useOffendersQuery } from "@/lib/queries";
 import type { OffenderResponse } from "@/lib/api";
@@ -50,17 +51,20 @@ function OffendersTableInner() {
   const { selectedVenue } = useVenueContext();
   const { data: offenders = [], isLoading } = useOffendersQuery(selectedVenue?.id);
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [globalFilter, setGlobalFilter] = useState("");
-  const [sorting, setSorting] = useState<SortingState>([{ id: "createdAt", desc: true }]);
-  const [selected, setSelected] = useState<OffenderResponse | null>(null);
+  const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
 
-  // Auto-open modal when arriving via /offenders?id=xxx
-  useEffect(() => {
-    const id = searchParams.get("id");
-    if (!id || offenders.length === 0) return;
-    const match = offenders.find((o) => o.id === id);
-    if (match) setSelected(match);
-  }, [searchParams, offenders]);
+  const selected = offenders.find((o) => o.id === searchParams.get("id")) ?? null;
+  const [editingOffender, setEditingOffender] = useState<OffenderResponse | null>(null);
+
+  function handleClose() {
+    if (editingOffender) {
+      setEditingOffender(null);
+    } else {
+      router.replace("?", { scroll: false });
+    }
+  }
 
   const columns = useMemo<ColumnDef<OffenderResponse>[]>(() => [
     {
@@ -70,10 +74,18 @@ function OffendersTableInner() {
       cell: ({ row }) => {
         const o = row.original;
         const initials = `${o.firstName[0] ?? ""}${o.lastName[0] ?? ""}`.toUpperCase();
+        const photo = o.photoUrls?.[0];
         return (
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#26262F] text-xs font-bold text-[#8B8B9D]">
-              {initials}
+            <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full">
+              {photo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={photo} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-[#26262F] text-xs font-bold text-[#8B8B9D]">
+                  {initials}
+                </div>
+              )}
             </div>
             <span className="font-medium text-white">{o.firstName} {o.lastName}</span>
           </div>
@@ -105,7 +117,7 @@ function OffendersTableInner() {
       cell: ({ getValue }) => {
         const v = getValue() as string | undefined;
         return v ? (
-          <span className="rounded-md border border-[#2A2A34] bg-[#1a1a28] px-2 py-0.5 text-[11px] text-[#DDDBDB]">{v}</span>
+          <ColorTag>{v}</ColorTag>
         ) : (
           <span className="text-[#4A4A5A]">—</span>
         );
@@ -115,7 +127,7 @@ function OffendersTableInner() {
       accessorKey: "notes",
       header: "Notes",
       cell: ({ getValue }) => (
-        <span className="block max-w-[220px] truncate text-xs text-[#8B8B9D]">{(getValue() as string) || "—"}</span>
+        <span className="block max-w-55 truncate text-xs text-[#8B8B9D]">{(getValue() as string) || "—"}</span>
       ),
     },
     {
@@ -149,19 +161,27 @@ function OffendersTableInner() {
       id: "actions",
       header: "",
       cell: ({ row }) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setSelected(row.original)}
-          className="h-8 gap-1.5 border border-[#2A2A34] bg-transparent px-3 text-[#8B8B9D] hover:bg-white/5 hover:text-white"
-        >
-          <Eye className="h-3.5 w-3.5" />
-          View
-        </Button>
+        <div className="flex items-center gap-2.5">
+          <Button
+            size="icon-sm"
+            onClick={() => router.replace(`?id=${row.original.id}`, { scroll: false })}
+            className="border border-primary bg-primary/50 text-white hover:bg-primary/70"
+          >
+            <Eye className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            size="icon-sm"
+            onClick={() => setEditingOffender(row.original)}
+            className="border border-primary bg-transparent text-primary hover:bg-primary/10"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
+        </div>
       ),
     },
-  ], []);
+  ], [router, setEditingOffender]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: offenders,
     columns,
@@ -216,7 +236,7 @@ function OffendersTableInner() {
               </TableRow>
             ) : (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="border-[#2A2A34] hover:bg-white/[0.02]">
+                <TableRow key={row.id} className="border-[#2A2A34] hover:bg-white/2">
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-3 text-xs">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -235,7 +255,11 @@ function OffendersTableInner() {
         )}
       </div>
 
-      <OffenderDetailModal offender={selected} onClose={() => setSelected(null)} />
+      <OffenderDetailModal
+        offender={editingOffender ?? selected}
+        initialEditing={!!editingOffender}
+        onClose={handleClose}
+      />
     </>
   );
 }
