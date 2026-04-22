@@ -14,7 +14,14 @@ jest.mock("firebase/auth", () => ({
 jest.mock("@/lib/api", () => ({
   getMe: jest.fn().mockResolvedValue({ id: "u1", firstName: "John", lastName: "Doe", email: "john@example.com", phoneNumber: null, role: "USER" }),
 }));
-jest.mock("next/navigation", () => ({ useRouter: () => ({ push: jest.fn() }), usePathname: () => "/venue" }));
+const mockPush = jest.fn();
+let mockPathname = "/venue/v1";
+let mockParams: { id?: string } = {};
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mockPush, replace: jest.fn() }),
+  usePathname: () => mockPathname,
+  useParams: () => mockParams,
+}));
 
 function ContextInspector() {
   const { venues, selectedVenue } = useVenueContext();
@@ -28,16 +35,19 @@ function ContextInspector() {
 
 describe("Venue Switching — Context (VenueProvider)", () => {
   it("auto-selects the first venue on initial load", () => {
+    mockParams = {};
     render(<VenueProvider venues={mockVenues} loading={false} refetch={jest.fn()}><ContextInspector /></VenueProvider>);
     expect(screen.getByTestId("selected-name")).toHaveTextContent("NightGuard Downtown");
   });
 
   it("exposes all venues through context", () => {
+    mockParams = {};
     render(<VenueProvider venues={mockVenues} loading={false} refetch={jest.fn()}><ContextInspector /></VenueProvider>);
     expect(screen.getByTestId("venue-count")).toHaveTextContent("2");
   });
 
   it("selects none when venues list is empty", () => {
+    mockParams = {};
     render(<VenueProvider venues={[]} loading={false} refetch={jest.fn()}><ContextInspector /></VenueProvider>);
     expect(screen.getByTestId("selected-name")).toHaveTextContent("none");
   });

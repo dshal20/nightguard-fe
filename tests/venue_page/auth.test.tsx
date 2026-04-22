@@ -26,7 +26,11 @@ const mockGetMe = jest.fn();
 jest.mock("@/lib/api", () => ({ getMe: (...args: unknown[]) => mockGetMe(...args) }));
 
 const mockPush = jest.fn();
-jest.mock("next/navigation", () => ({ useRouter: () => ({ push: mockPush }), usePathname: () => "/venue" }));
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mockPush, replace: jest.fn() }),
+  usePathname: () => "/venue/v1",
+  useParams: () => ({ id: "v1" }),
+}));
 
 describe("User & Authentication — Profile Display", () => {
   beforeEach(() => {
@@ -55,10 +59,10 @@ describe("User & Authentication — Profile Display", () => {
     await waitFor(() => { expect(screen.getByText("john.doe")).toBeInTheDocument(); });
   });
 
-  it('displays "Venue Manager" role label', () => {
+  it('displays "Venue Member" role label', async () => {
     mockGetMe.mockResolvedValue(mockUser);
     render(<VenueSidebar />);
-    expect(screen.getByText("Venue Manager")).toBeInTheDocument();
+    await waitFor(() => { expect(screen.getByText("Venue Member")).toBeInTheDocument(); });
   });
 });
 
@@ -75,7 +79,8 @@ describe("User & Authentication — Sign Out", () => {
   it("renders a sign out option in the user dropdown", async () => {
     const user = userEvent.setup();
     render(<VenueSidebar />);
-    const userButton = screen.getByText("Venue Manager").closest("button")!;
+    await waitFor(() => { expect(screen.getByText("Venue Member")).toBeInTheDocument(); });
+    const userButton = screen.getByText("Venue Member").closest("button")!;
     await user.click(userButton);
     await waitFor(() => { expect(screen.getByText("Sign out")).toBeInTheDocument(); });
   });
@@ -83,7 +88,8 @@ describe("User & Authentication — Sign Out", () => {
   it("calls signOut and redirects to /login when Sign out is clicked", async () => {
     const user = userEvent.setup();
     render(<VenueSidebar />);
-    const userButton = screen.getByText("Venue Manager").closest("button")!;
+    await waitFor(() => { expect(screen.getByText("Venue Member")).toBeInTheDocument(); });
+    const userButton = screen.getByText("Venue Member").closest("button")!;
     await user.click(userButton);
     await waitFor(() => { expect(screen.getByText("Sign out")).toBeInTheDocument(); });
     await user.click(screen.getByText("Sign out"));

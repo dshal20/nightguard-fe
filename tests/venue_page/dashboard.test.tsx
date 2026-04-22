@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import VenueDashboard from "@/app/venue/page";
+import VenueDashboard from "@/app/venue/[id]/page";
 import StatCard from "@/app/venue/components/StatCard";
 import RecentReports from "@/app/venue/components/RecentReports";
 import LiveActivity from "@/app/venue/components/LiveActivity";
@@ -23,6 +23,7 @@ jest.mock("@/lib/queries", () => ({
   useCapacityQuery: jest.fn().mockReturnValue({ data: null }),
   useHeadcountsQuery: jest.fn().mockReturnValue({ data: [] }),
   useOffendersQuery: jest.fn().mockReturnValue({ data: [] }),
+  useNotificationActivityQuery: jest.fn().mockReturnValue({ data: [], isLoading: false }),
 }));
 jest.mock("@tanstack/react-query", () => ({
   useQueryClient: jest.fn().mockReturnValue({ invalidateQueries: jest.fn() }),
@@ -30,7 +31,11 @@ jest.mock("@tanstack/react-query", () => ({
   QueryClientProvider: ({ children }: { children: React.ReactNode }) => children,
   QueryClient: jest.fn(),
 }));
-jest.mock("next/navigation", () => ({ useRouter: () => ({ push: jest.fn() }), usePathname: () => "/venue" }));
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
+  usePathname: () => "/venue/venue-1",
+  useParams: () => ({ id: "venue-1" }),
+}));
 jest.mock("@/app/venue/components/OffenderSearch", () => ({ __esModule: true, default: () => <div data-testid="offender-search" /> }));
 
 describe("Dashboard Page", () => {
@@ -40,34 +45,15 @@ describe("Dashboard Page", () => {
     mockUseVenueContext.mockReturnValue({ venues: mockVenues, selectedVenue: mockVenues[0], setSelectedVenue: jest.fn(), loading: false, refetch: jest.fn() });
     render(<VenueDashboard />);
     expect(screen.getByText("ACTIVE INCIDENTS")).toBeInTheDocument();
-    expect(screen.getByText("TOTAL TONIGHT")).toBeInTheDocument();
+    expect(screen.getByText("TOTAL - LAST 24 HOURS")).toBeInTheDocument();
     expect(screen.getByText("CURRENT CAPACITY")).toBeInTheDocument();
-    expect(screen.getByText("NETWORK ALERTS")).toBeInTheDocument();
+    expect(screen.getByText("Network Alerts")).toBeInTheDocument();
   });
 
-  it("shows loading state when venue context is loading", () => {
-    mockUseVenueContext.mockReturnValue({ venues: [], selectedVenue: null, setSelectedVenue: jest.fn(), loading: true, refetch: jest.fn() });
-    render(<VenueDashboard />);
-    expect(screen.getByText("Loading…")).toBeInTheDocument();
-  });
-
-  it("shows JoinVenuePrompt when user has no venues", () => {
-    mockUseVenueContext.mockReturnValue({ venues: [], selectedVenue: null, setSelectedVenue: jest.fn(), loading: false, refetch: jest.fn() });
-    render(<VenueDashboard />);
-    expect(screen.getByText("Join a Venue")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("INVITE CODE")).toBeInTheDocument();
-  });
-
-  it("renders the New Report button", () => {
+  it("renders offender search on the dashboard", () => {
     mockUseVenueContext.mockReturnValue({ venues: mockVenues, selectedVenue: mockVenues[0], setSelectedVenue: jest.fn(), loading: false, refetch: jest.fn() });
     render(<VenueDashboard />);
-    expect(screen.getByText("New Report")).toBeInTheDocument();
-  });
-
-  it("renders the Export Event Report button", () => {
-    mockUseVenueContext.mockReturnValue({ venues: mockVenues, selectedVenue: mockVenues[0], setSelectedVenue: jest.fn(), loading: false, refetch: jest.fn() });
-    render(<VenueDashboard />);
-    expect(screen.getByText("Export Event Report")).toBeInTheDocument();
+    expect(screen.getByTestId("offender-search")).toBeInTheDocument();
   });
 });
 
@@ -121,20 +107,14 @@ describe("RecentReports Component", () => {
 });
 
 describe("LiveActivity Component", () => {
-  it("renders the Live Activity heading", () => {
+  it("renders the Live Activity heading and default range", () => {
     render(<LiveActivity />);
     expect(screen.getByText("Live Activity")).toBeInTheDocument();
+    expect(screen.getByText("Last Hour")).toBeInTheDocument();
   });
 
-  it("renders activity items", () => {
+  it("renders empty state when no activity is present", () => {
     render(<LiveActivity />);
-    expect(screen.getByText("Nearby Report")).toBeInTheDocument();
-    expect(screen.getAllByText("Medical Emergency")).toHaveLength(2);
-    expect(screen.getAllByText("Trespass Issued")).toHaveLength(2);
-  });
-
-  it("renders filter button", () => {
-    render(<LiveActivity />);
-    expect(screen.getByText("Filter")).toBeInTheDocument();
+    expect(screen.getByText("No network activity yet")).toBeInTheDocument();
   });
 });

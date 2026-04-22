@@ -2,71 +2,135 @@
 
 This directory contains the test suites for the Venue-specific pages and components of the NightGuard frontend.
 
+Venue routes are now dynamic (`/venue/[id]/...`). Many tests mock `next/navigation` (`useParams`, `usePathname`, `useRouter`) so components can render without a real Next.js router.
+
 ## account.test.tsx
-**Suite: Account Page**
-- **UI Rendering:** Verifies the "Account" heading, user's full name, role (Venue Member or Admin), and venue location details (Name, City, State) are correctly displayed.
-- **Fallback Logic:** Ensures the user's email prefix is used as a fallback if their full name is missing.
-- **Authentication:** Validates the "Log out" button's existence and functionality, ensuring it triggers the sign-out process and redirects the user to the login page.
+
+**Suite: Account Page (`/venue/[id]/account`)**
+
+- **Page shell:** Verifies the "Account" heading renders after profile data loads.
+- **Role + venue fields:** Asserts read-only `Venue Member` / `Admin` role values and the first venue name from `getVenues` appear as input display values.
+- **Avatar fallback:** When `getMe` returns no first/last name, verifies the avatar initials fallback renders (first letter of the email).
+- **Authentication:** Validates the "Log out" button exists and triggers Firebase `signOut` + navigation to `/login`.
 
 ## auth.test.tsx
+
 **Suite: User & Authentication — Profile Display**
-- **Sidebar Integration:** Tests that the user's name and role ("Venue Manager") are correctly displayed in the sidebar.
-- **Error Handling:** Verifies that the UI gracefully handles API failures by falling back to the user's email prefix.
+
+- **Sidebar integration:** Verifies `getMe` drives the sidebar display name (`John Doe`) and role label (`Venue Member` for `USER` profiles).
+- **Error handling:** Verifies failures from `getMe` fall back to the Firebase email prefix.
+
 **Suite: User & Authentication — Sign Out**
-- **Log out Flow:** Confirms the "Sign out" button in the sidebar correctly invokes the authentication sign-out method and redirects to `/login`.
-- **Support Links:** Ensures the "Need help? Contact Support" text is visible.
+
+- **Dropdown flow:** Opens the user menu from the role row and verifies `Sign out` appears.
+- **Redirect:** Confirms clicking `Sign out` calls Firebase `signOut` and routes to `/login`.
 
 ## capacity.test.tsx
+
 **Suite: Capacity — Dashboard StatCard**
-- **Integration:** Verifies the "CURRENT CAPACITY" card appears on the dashboard with the correct mocked values and "Max Capacity" subtitles.
+
+- **Integration:** Renders the venue dashboard (`/venue/[id]`) and verifies the `CURRENT CAPACITY` stat reflects mocked headcount + max capacity copy.
+
 **Suite: Capacity StatCard — Isolated**
-- **Component Logic:** Tests the `StatCard` component in isolation, checking for correct rendering of zero values, max values, and conditional "red" accents for over-capacity scenarios.
+
+- **Component logic:** Tests `StatCard` in isolation for zero values, max subtitles, optional progress bars, and red accent usage for over-capacity values.
+
 **Suite: Capacity Counter (future feature)**
-- **Placeholders:** Contains `todo` definitions for future capacity increment/decrement features, limit editing, and reset logic.
+
+- **Placeholders:** Contains `todo` definitions for future counter interactions (increment/decrement, limit editing, reset, over-limit styling).
 
 ## dashboard.test.tsx
-**Suite: Dashboard Page**
-- **Layout:** Ensures all primary StatCards (Active Incidents, Total Tonight, Current Capacity, Network Alerts) render when a venue is selected.
-- **State Management:** Validates loading states and the "Join a Venue" prompt for users with no associated venues.
-- **Action Buttons:** Checks for the presence of "New Report" and "Export Event Report" buttons.
+
+**Suite: Dashboard Page (`/venue/[id]`)**
+
+- **Primary stats:** Verifies the four dashboard tiles render: `ACTIVE INCIDENTS`, `TOTAL - LAST 24 HOURS`, `CURRENT CAPACITY`, and `Network Alerts` (title casing matches the UI).
+- **Offender search:** Asserts the dashboard includes the offender search region (mocked via `data-testid="offender-search"`).
+
 **Suite: StatCard Component**
-- **Visuals:** Tests general rendering of titles, values, metadata, and different color accents.
+
+- **Visuals:** Tests title/value/meta/subtitle rendering, optional meta omission, accent variants, and progress bar width styling.
+
 **Suite: RecentReports Component**
-- **Data Display:** Verifies incident row rendering, empty states, loading spinners, and the "View All Reports" link.
+
+- **Data display:** Verifies incident row rendering, empty states, loading spinners, and the `View All Reports` link.
+
 **Suite: LiveActivity Component**
-- **Activity Feed:** Checks the rendering of the activity heading, filter buttons, and mock activity items like "Medical Emergency" or "Trespass Issued."
+
+- **Header + default window:** Asserts `Live Activity` renders with the default time window label (`Last Hour`).
+- **Empty network feed:** With no mocked activity, verifies the `No network activity yet` empty state.
 
 ## incidents.test.tsx
-**Suite: Incidents Page**
-- **Data Fetching:** Validates that incidents are fetched for the currently selected venue using the correct auth token.
-- **Table Rendering:** Verifies the incident table displays descriptions, severity levels (MEDIUM/HIGH), and keywords (e.g., "aggressive", "verbal").
-- **Empty & Error States:** Tests UI feedback for "No incidents reported yet," network errors, and "No venue found" scenarios.
+
+**Suite: Incidents Page (`/venue/[id]/incidents`)**
+
+- **Query wiring:** Asserts `useIncidentsQuery` receives the selected venue id.
+- **Empty / loading / error:** Covers the empty copy, spinner while loading, and the error string when the query fails.
+- **Table rendering:** With mocked incidents, verifies formatted type labels, descriptions, and keyword chips.
 
 ## navigation.test.tsx
+
 **Suite: Navigation — Sidebar Links**
-- **Visibility:** Confirms all navigation sections (Dashboard, Incidents, Offenders, Staff), network links, and settings links are present.
+
+- **Core nav:** Confirms `Dashboard`, `Incidents`, `Patrons`, `Logs`, `Offenders`, and `Staff` appear.
+- **Network + settings:** Confirms `Network Alerts`, `Nearby Venues`, `Venue Preferences`, and `Account` appear.
+
 **Suite: Navigation — Active Link Highlighting**
-- **Logic:** Verifies that links (Dashboard, Incidents, Account) receive appropriate "active" styling based on the current URL path.
-**Suite: Navigation — Badges**
-- **Notifications:** Specifically tests that the "Incidents" link displays a notification badge with the correct count.
+
+- **Active styles:** Asserts `Dashboard`, `Incidents`, and `Account` links pick up active styling on `/venue/v1`, `/venue/v1/incidents`, and `/venue/v1/account` respectively, and that `Dashboard` is inactive on the incidents route.
+
 **Suite: Navigation — Link Destinations**
-- **Routing:** Ensures all sidebar links point to the correct internal application paths.
+
+- **Dynamic hrefs:** Verifies links include the selected venue id (`/venue/v1/...`) for dashboard, incidents, patrons (capacity), logs, offenders, and account.
 
 ## new-report.test.tsx
+
 **Suite: New Report — Dialog**
-- **Form UI:** Tests the opening/closing of the "New Incident Report" dialog.
-- **Input Fields:** Validates the Incident Type selector (checking all 11 types), Severity buttons (LOW, MEDIUM, HIGH), and the description textarea.
-- **Keyword Management:** Exhaustively tests the keyword system, including adding via button or Enter key, clearing input, preventing duplicates, and removing keywords.
-- **Submission Logic:** Verifies form validation (disabling submit until complete), successful API payloads, error message handling, and the final "Success" view.
+
+- **Open/close behavior:** Validates dialog title visibility when `open` toggles.
+- **Incident type:** Covers placeholder, all incident type options, and selection.
+- **Severity + description:** Covers severity button selection and textarea typing.
+- **Keywords:** Covers add/remove flows (button + Enter), duplicate prevention, and clearing input after add.
+- **Submission:** Covers disabled/enabled submit states, success UI, error surfacing, `Done` button after success, and `createIncident` payload expectations (including `offenderIds` and `mediaUrls` when no media is attached).
 
 ## offenders.test.tsx
+
 **Suite: Offenders — Sidebar Link**
-- **Navigation:** Confirms the "Offenders" link is present in the sidebar.
+
+- **Navigation:** Confirms `Offenders` exists and links to `/venue/v1/offenders` when the selected venue id is `v1`.
+
 **Suite: Offenders Page (future feature)**
-- **Placeholders:** Contains `todo` definitions for future offender list views, empty states, and detail displays.
+
+- **Placeholders:** Contains `todo` definitions for future offenders table coverage.
 
 ## venue-switching.test.tsx
-**Suite: Venue Switching — Context (VenueProvider)**
-- **State Logic:** Tests the `VenueProvider` logic for auto-selecting the first venue, exposing the full venue list, and handling empty lists.
+
+**Suite: Venue Switching — Context (`VenueProvider`)**
+
+- **Selection rules:** With empty `useParams`, verifies the first venue becomes selected, all venues are exposed via context, and an empty venue list yields no selection.
+
 **Suite: Venue Switching — Sidebar Dropdown**
-- **Interaction:** Validates the venue switcher UI, ensuring it displays the current venue's city/state, opens a dropdown list of all available venues on click, and handles loading/empty states.
+
+- **Switcher UI:** Verifies the selected venue name + `City, ST` subtitle render, the dropdown lists other venues, and empty/loading copy (`No venues`, `Loading…`) appears appropriately.
+
+## logs.test.tsx
+
+**Suite: Venue Logs Page (`/venue/[id]/logs`)**
+
+- **Query wiring:** Asserts `usePatronLogsQuery` receives the selected venue id.
+- **Loading + empty states:** Covers the loading row copy and the default empty message when no logs exist.
+- **Rendering + search:** With a mocked patron log, verifies name/decision rendering, the footer count string, and that the global search filters rows to the "no match" empty state.
+
+## network-alerts-card.test.tsx
+
+**Suite: `NetworkAlertsCard`**
+
+- **Loading UI:** Asserts placeholders while notification activity is loading.
+- **Counts:** Verifies total alert count and unique originating venue count from mocked activity items.
+- **Time window:** Verifies changing the range updates the query hook arguments and updates the contextual label text.
+
+## scan.test.tsx
+
+**Suite: Venue Scan Page (`/venue/[id]/scan`)**
+
+- **Upload UX:** Verifies front/back upload affordances render on first paint.
+- **Scan gating:** Asserts `Scan License` stays disabled until a back-side image is selected, then enables and shows the back preview.

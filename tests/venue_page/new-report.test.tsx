@@ -187,7 +187,7 @@ describe("New Report — Submission", () => {
     await waitFor(() => {
       expect(mockCreateIncident).toHaveBeenCalledWith("mock-token", {
         venueId: "venue-1", type: "THEFT", severity: "MEDIUM",
-        description: "Wallet stolen", keywords: ["theft"], offenderIds: [],
+        description: "Wallet stolen", keywords: ["theft"], offenderIds: [], mediaUrls: [],
       });
     });
   });

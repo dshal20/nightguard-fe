@@ -20,7 +20,7 @@ jest.mock("@/lib/api", () => ({
 }));
 
 let mockPathname = "/venue";
-jest.mock("next/navigation", () => ({ useRouter: () => ({ push: jest.fn() }), usePathname: () => mockPathname }));
+jest.mock("next/navigation", () => ({ useRouter: () => ({ push: jest.fn(), replace: jest.fn() }), usePathname: () => mockPathname, useParams: () => ({ id: "v1" }) }));
 
 describe("Navigation — Sidebar Links", () => {
   beforeEach(() => { mockPathname = "/venue"; });
@@ -29,7 +29,8 @@ describe("Navigation — Sidebar Links", () => {
     render(<VenueSidebar />);
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
     expect(screen.getByText("Incidents")).toBeInTheDocument();
-    expect(screen.getByText("Capacity")).toBeInTheDocument();
+    expect(screen.getByText("Patrons")).toBeInTheDocument();
+    expect(screen.getByText("Logs")).toBeInTheDocument();
     expect(screen.getByText("Offenders")).toBeInTheDocument();
     expect(screen.getByText("Staff")).toBeInTheDocument();
   });
@@ -42,35 +43,35 @@ describe("Navigation — Sidebar Links", () => {
 
   it("renders settings section links", () => {
     render(<VenueSidebar />);
-    expect(screen.getByText("Preferences")).toBeInTheDocument();
+    expect(screen.getByText("Venue Preferences")).toBeInTheDocument();
     expect(screen.getByText("Account")).toBeInTheDocument();
   });
 });
 
 describe("Navigation — Active Link Highlighting", () => {
-  it('highlights "Dashboard" when on /venue', () => {
-    mockPathname = "/venue";
+  it('highlights "Dashboard" when on /venue/v1', () => {
+    mockPathname = "/venue/v1";
     render(<VenueSidebar />);
     const dashboardLink = screen.getByText("Dashboard").closest("a")!;
     expect(dashboardLink.className).toContain("bg-[#16162A]");
   });
 
-  it('highlights "Incidents" when on /venue/incidents', () => {
-    mockPathname = "/venue/incidents";
+  it('highlights "Incidents" when on /venue/v1/incidents', () => {
+    mockPathname = "/venue/v1/incidents";
     render(<VenueSidebar />);
     const incidentsLink = screen.getByText("Incidents").closest("a")!;
     expect(incidentsLink.className).toContain("bg-[#16162A]");
   });
 
-  it('highlights "Account" when on /venue/account', () => {
-    mockPathname = "/venue/account";
+  it('highlights "Account" when on /venue/v1/account', () => {
+    mockPathname = "/venue/v1/account";
     render(<VenueSidebar />);
     const accountLink = screen.getByText("Account").closest("a")!;
     expect(accountLink.className).toContain("bg-[#16162A]");
   });
 
   it("does not highlight Dashboard when on incidents page", () => {
-    mockPathname = "/venue/incidents";
+    mockPathname = "/venue/v1/incidents";
     render(<VenueSidebar />);
     const dashboardLink = screen.getByText("Dashboard").closest("a")!;
     expect(dashboardLink.className).toContain("text-[#8B8B9D]");
@@ -78,28 +79,33 @@ describe("Navigation — Active Link Highlighting", () => {
 });
 
 describe("Navigation — Link Destinations", () => {
-  it("Dashboard links to /venue", () => {
+  it("Dashboard links to /venue/v1", () => {
     render(<VenueSidebar />);
-    expect(screen.getByText("Dashboard").closest("a")).toHaveAttribute("href", "/venue");
+    expect(screen.getByText("Dashboard").closest("a")).toHaveAttribute("href", "/venue/v1");
   });
 
-  it("Incidents links to /venue/incidents", () => {
+  it("Incidents links to /venue/v1/incidents", () => {
     render(<VenueSidebar />);
-    expect(screen.getByText("Incidents").closest("a")).toHaveAttribute("href", "/venue/incidents");
+    expect(screen.getByText("Incidents").closest("a")).toHaveAttribute("href", "/venue/v1/incidents");
   });
 
-  it("Capacity links to /venue/capacity", () => {
+  it("Patrons links to /venue/v1/capacity", () => {
     render(<VenueSidebar />);
-    expect(screen.getByText("Capacity").closest("a")).toHaveAttribute("href", "/venue/capacity");
+    expect(screen.getByText("Patrons").closest("a")).toHaveAttribute("href", "/venue/v1/capacity");
   });
 
-  it("Offenders links to /venue/offenders", () => {
+  it("Logs links to /venue/v1/logs", () => {
     render(<VenueSidebar />);
-    expect(screen.getByText("Offenders").closest("a")).toHaveAttribute("href", "/venue/offenders");
+    expect(screen.getByText("Logs").closest("a")).toHaveAttribute("href", "/venue/v1/logs");
   });
 
-  it("Account links to /venue/account", () => {
+  it("Offenders links to /venue/v1/offenders", () => {
     render(<VenueSidebar />);
-    expect(screen.getByText("Account").closest("a")).toHaveAttribute("href", "/venue/account");
+    expect(screen.getByText("Offenders").closest("a")).toHaveAttribute("href", "/venue/v1/offenders");
+  });
+
+  it("Account links to /venue/v1/account", () => {
+    render(<VenueSidebar />);
+    expect(screen.getByText("Account").closest("a")).toHaveAttribute("href", "/venue/v1/account");
   });
 });

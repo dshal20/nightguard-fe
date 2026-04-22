@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import VenueAccountPage from "@/app/venue/account/page";
+import VenueAccountPage from "@/app/venue/[id]/account/page";
 import { mockVenues, mockUser, mockUserNoName } from "./helpers";
 
 const mockGetMe = jest.fn();
@@ -16,7 +16,11 @@ jest.mock("@/lib/api", () => ({
   getMe: (...args: unknown[]) => mockGetMe(...args),
   getVenues: (...args: unknown[]) => mockGetVenues(...args),
 }));
-jest.mock("next/navigation", () => ({ useRouter: () => ({ push: mockPush }), usePathname: () => "/venue/account" }));
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mockPush, replace: jest.fn() }),
+  usePathname: () => "/venue/venue-1/account",
+  useParams: () => ({ id: "venue-1" }),
+}));
 
 describe("Account Page", () => {
   beforeEach(() => {
@@ -25,36 +29,31 @@ describe("Account Page", () => {
     mockGetVenues.mockResolvedValue(mockVenues);
   });
 
-  it("displays the user's full name", async () => {
+  it("renders account page shell", async () => {
     render(<VenueAccountPage />);
-    await waitFor(() => { expect(screen.getByText("John Doe")).toBeInTheDocument(); });
+    await waitFor(() => { expect(screen.getByText("Account")).toBeInTheDocument(); });
   });
 
   it("displays the user's role", async () => {
     render(<VenueAccountPage />);
-    await waitFor(() => { expect(screen.getByText("Venue Member")).toBeInTheDocument(); });
+    await waitFor(() => { expect(screen.getByDisplayValue("Venue Member")).toBeInTheDocument(); });
   });
 
   it("displays the venue name", async () => {
     render(<VenueAccountPage />);
-    await waitFor(() => { expect(screen.getByText("NightGuard Downtown")).toBeInTheDocument(); });
+    await waitFor(() => { expect(screen.getByDisplayValue("NightGuard Downtown")).toBeInTheDocument(); });
   });
 
-  it("displays venue city and state", async () => {
-    render(<VenueAccountPage />);
-    await waitFor(() => { expect(screen.getByText("Gainesville, FL")).toBeInTheDocument(); });
-  });
-
-  it("falls back to email prefix when user has no name", async () => {
+  it("falls back to first initial when user has no name", async () => {
     mockGetMe.mockResolvedValue(mockUserNoName);
     render(<VenueAccountPage />);
-    await waitFor(() => { expect(screen.getByText("john.doe")).toBeInTheDocument(); });
+    await waitFor(() => { expect(screen.getByText("J")).toBeInTheDocument(); });
   });
 
   it("displays ADMIN role when user is admin", async () => {
     mockGetMe.mockResolvedValue({ ...mockUser, role: "ADMIN" });
     render(<VenueAccountPage />);
-    await waitFor(() => { expect(screen.getByText("Admin")).toBeInTheDocument(); });
+    await waitFor(() => { expect(screen.getByDisplayValue("Admin")).toBeInTheDocument(); });
   });
 
   it("renders a Log out button", () => {

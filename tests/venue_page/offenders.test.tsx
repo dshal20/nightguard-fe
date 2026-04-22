@@ -18,7 +18,11 @@ jest.mock("firebase/auth", () => ({
 jest.mock("@/lib/api", () => ({
   getMe: jest.fn().mockResolvedValue({ id: "u1", firstName: "John", lastName: "Doe", email: "john@example.com", phoneNumber: null, role: "USER" }),
 }));
-jest.mock("next/navigation", () => ({ useRouter: () => ({ push: jest.fn() }), usePathname: () => "/venue" }));
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
+  usePathname: () => "/venue/v1",
+  useParams: () => ({ id: "v1" }),
+}));
 
 describe("Offenders — Sidebar Link", () => {
   it('renders an "Offenders" navigation item', () => {
@@ -26,10 +30,10 @@ describe("Offenders — Sidebar Link", () => {
     expect(screen.getByText("Offenders")).toBeInTheDocument();
   });
 
-  it("the Offenders link points to /venue/offenders", () => {
+  it("the Offenders link points to /venue/v1/offenders", () => {
     render(<VenueSidebar />);
     const link = screen.getByText("Offenders").closest("a");
-    expect(link).toHaveAttribute("href", "/venue/offenders");
+    expect(link).toHaveAttribute("href", "/venue/v1/offenders");
   });
 });
 

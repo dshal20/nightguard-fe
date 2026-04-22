@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import IncidentsPage from "@/app/venue/incidents/page";
+import IncidentsPage from "@/app/venue/[id]/incidents/page";
 import { mockVenues, mockIncidents } from "./helpers";
 
 const mockUseVenueContext = jest.fn();
@@ -20,7 +20,11 @@ jest.mock("firebase/auth", () => ({
   getAuth: jest.fn(),
 }));
 jest.mock("@/lib/api", () => ({}));
-jest.mock("next/navigation", () => ({ useRouter: () => ({ push: jest.fn() }), usePathname: () => "/venue/incidents" }));
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
+  usePathname: () => "/venue/venue-1/incidents",
+  useSearchParams: () => ({ get: () => null }),
+}));
 jest.mock("@/app/venue/components/EditIncidentModal", () => ({ __esModule: true, default: () => null }));
 
 describe("Incidents Page", () => {

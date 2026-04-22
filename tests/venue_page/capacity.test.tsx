@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import VenueDashboard from "@/app/venue/page";
+import VenueDashboard from "@/app/venue/[id]/page";
 import StatCard from "@/app/venue/components/StatCard";
 import { mockVenues } from "./helpers";
 
@@ -16,6 +16,7 @@ jest.mock("@/lib/queries", () => ({
   useCapacityQuery: (...a: unknown[]) => mockUseCapacityQuery(...a),
   useHeadcountsQuery: (...a: unknown[]) => mockUseHeadcountsQuery(...a),
   useOffendersQuery: jest.fn().mockReturnValue({ data: [] }),
+  useNotificationActivityQuery: jest.fn().mockReturnValue({ data: [], isLoading: false }),
 }));
 jest.mock("@tanstack/react-query", () => ({
   useQueryClient: jest.fn().mockReturnValue({ invalidateQueries: jest.fn() }),
@@ -32,7 +33,11 @@ jest.mock("firebase/auth", () => ({
   signOut: jest.fn(), getAuth: jest.fn(),
 }));
 jest.mock("@/lib/api", () => ({ getMe: jest.fn().mockResolvedValue({ id: "u1", firstName: "John", lastName: "Doe", email: "john@example.com", phoneNumber: null, role: "USER" }), joinVenue: jest.fn() }));
-jest.mock("next/navigation", () => ({ useRouter: () => ({ push: jest.fn() }), usePathname: () => "/venue" }));
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
+  usePathname: () => "/venue/venue-1",
+  useParams: () => ({ id: "venue-1" }),
+}));
 jest.mock("@/app/venue/components/OffenderSearch", () => ({ __esModule: true, default: () => <div data-testid="offender-search" /> }));
 
 describe("Capacity — Dashboard StatCard", () => {
